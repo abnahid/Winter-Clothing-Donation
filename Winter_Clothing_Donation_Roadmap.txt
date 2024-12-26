@@ -1,0 +1,106 @@
+Winter Clothing Donation Website - Project Working Roadmap
+
+Project Overview:
+The Winter Clothing Donation Website connects donors with volunteers to facilitate donations of winter clothing to vulnerable people in Bangladesh. This single-page application emphasizes responsiveness, user-friendly design, and secure Firebase-based authentication.
+
+---
+
+Required Tasks Implementation
+
+1. Navbar:
+- Design: Created a flexible navbar with the following:
+  - Site logo positioned centrally.✅
+  - Navigation links: Home, Donation Campaigns, “How to Help,” and Dashboard.✅
+  - Profile photo display for logged-in users; Login button for unauthenticated users.✅
+  - Responsive design for mobile, tablet, and desktop screens.✅
+
+---
+
+2. Footer:
+- Content: Added contact info, social media links, and a copyright notice. ✅
+- Design: Unique and winter-themed, matching the overall website aesthetics. ✅
+
+---
+
+3. JSON Data Generation:
+- Created a JSON data file containing at least 6 donation campaigns with attributes:
+  - id, title, image, description, status, contactInfo, and division.✅
+- Two campaigns per division included for a broader range of donation opportunities.✅
+
+---
+
+4. Home Page Components:
+- Banner/Slider Section:
+  - Integrated winter-themed slider using Swiper to display campaigns and community support.✅
+- About Section:
+  - Described the mission and importance of winter clothing donations.✅
+- How It Works Section:
+  - Detailed instructions for donation, collection points, and supported divisions.✅
+- Extra Sections:
+  - Added a testimonial section showcasing volunteer and donor stories.✅
+  - Added a FAQ section to address common queries.✅
+
+---
+
+5. Donation Campaigns Page:
+- Displayed donation cards from JSON data with attributes like image, title, description, and division.✅
+- Donate Now Button: Redirects to a private details page.✅
+
+---
+
+6. Donation Details Page:
+- Accessible only to logged-in users. ✅
+- Displays:
+  - Campaign details (image, description, etc.).✅
+  - Donation form fields: Item quantity, item type, pickup location, and notes.✅
+  - Toast confirmation upon submission.✅
+
+---
+
+7. Authentication System:
+- Login and Registration:✅
+  - Login Form: Email, Password, Forget Password, Google Login button.✅
+  - Registration Form: Name, Email, Photo URL, Password.✅
+  - Password validation: Minimum 6 characters with at least one uppercase and one lowercase letter. ✅
+  - Social Login with Google implemented.✅
+- Forget Password:
+  - Functional reset password feature redirects to Gmail.✅
+  - Prefilled email in the reset form.✅
+
+---
+
+8. Dashboard (Private Route):
+- Displays user profile information: name, email, photo.✅
+- Includes an update button to edit profile details via Firebase.✅
+
+---
+
+9. Error Page:
+- 404 Page with a "Go Home" button.✅
+
+---
+
+Challenges Addressed
+1. Animation: Integrated AOS animations on the Home Page.✅
+2. Password Toggling: Implemented a show/hide password feature on registration.✅
+3. Profile Update: Enabled users to update their name and profile photo. ✅
+4. Firebase Environment Security: Secured Firebase keys using environment variables.✅
+5. Deployment:
+   - Hosted on Netlify.✅
+   - Configured routes for smooth reloading on private routes.✅
+
+---
+
+Final Deliverables
+1. GitHub Repository:
+   - Includes all meaningful commits with descriptive messages.✅
+   - Link: [Insert GitHub Repo Link Here]✅
+
+2. Live Application:
+   - Hosted on [Netlify/Surge/Firebase].✅
+   - Live Link: [Insert Live Application Link Here]
+
+3. Readme File:
+   - Contains project name, purpose, key features, live URL, and any npm packages used.✅
+
+---
