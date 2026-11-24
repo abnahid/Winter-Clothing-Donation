@@ -5,19 +5,21 @@ import toast from "react-hot-toast";
 import { FaEyeSlash } from "react-icons/fa";
 import { IoEyeSharp } from "react-icons/io5";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { AuthContext } from "../context/AuthProvider";
+import { AuthContext, authErrorMessage } from "../context/AuthProvider";
 
 const Login = () => {
-  const { loginUser, setUser, googleLogin } = useContext(AuthContext);
+  const { loginUser, googleLogin } = useContext(AuthContext);
   const [type, setType] = useState("password");
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
 
   const handelGoogle = () => {
-    googleLogin().then((result) => {
-      navigate(location?.state?.from || "/");
-    });
+    try {
+      googleLogin();
+    } catch (error) {
+      toast.error(authErrorMessage(error));
+    }
   };
 
   const handelSubmit = (e) => {
@@ -27,17 +29,13 @@ const Login = () => {
     const password = form.get("password");
 
     loginUser(email, password)
-      .then((userCredential) => {
-        // Signed in
-        const user = userCredential.user;
+      .then(({ user }) => {
         toast.success(`User Login successfully!: ${user.email}`);
         e.target.reset();
-        setUser(user);
         navigate(location?.state?.from || "/");
       })
       .catch((error) => {
-        const errorMessage = error.message;
-        toast.error(`Error: ${errorMessage}`);
+        toast.error(authErrorMessage(error));
       });
   };
 
@@ -109,6 +107,8 @@ const Login = () => {
                     type="email"
                     name="email"
                     required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="w-full text-gray-800 text-sm border border-gray-300 px-4 py-3 rounded-md outline-primary"
                     placeholder="Enter user name"
                   />

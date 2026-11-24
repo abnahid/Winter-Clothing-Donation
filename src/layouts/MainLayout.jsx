@@ -1,14 +1,25 @@
 import AOS from "aos";
 import "aos/dist/aos.css";
-import { useEffect, useState } from "react";
-import { Outlet } from "react-router-dom";
+import { useContext, useEffect, useState } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Snowfall from "react-snowfall";
 import snowflake1 from "../assets/logo-M84r5xQ4.png";
 import Footer from "../components/Footer";
+import { AuthContext } from "../context/AuthProvider";
 import Navbar from "../components/Navbar";
 
 const MainLayout = () => {
   const [images, setImages] = useState([]);
+  const { pendingRecovery } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  // After a password-reset email link, send the user to set a new password.
+  useEffect(() => {
+    if (pendingRecovery && pathname !== "/forgot-password") {
+      navigate("/forgot-password");
+    }
+  }, [pendingRecovery, pathname, navigate]);
 
   useEffect(() => {
     AOS.init({

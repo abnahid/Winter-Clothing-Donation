@@ -2,53 +2,27 @@ import { useContext, useState } from "react";
 import { Helmet } from "react-helmet";
 import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
-import { AuthContext } from "../context/AuthProvider";
+import { AuthContext, authErrorMessage } from "../context/AuthProvider";
 
 const UpdateProfile = () => {
-  const { updateUserProfile, user, auth, setUser } = useContext(AuthContext);
+  const { updateUserProfile, user } = useContext(AuthContext);
   const [btnLoading, setBtnLoading] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-
-  const imgbbApiKey = import.meta.env.VITE_IMGBB_API_KEY;
 
   const handleUpdate = async (e) => {
     e.preventDefault();
     setBtnLoading(true);
 
     const name = e.target.name.value;
-    const photo = e.target.profilePhoto.files[0];
+    const photoURL = e.target.photoUrl.value.trim();
 
     try {
-      let photoURL = user?.photoURL;
-
-      if (photo) {
-        const formData = new FormData();
-        formData.append("image", photo);
-
-        const response = await fetch(
-          `https://api.imgbb.com/1/upload?key=${imgbbApiKey}`,
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to upload image to ImgBB");
-        }
-
-        const data = await response.json();
-        photoURL = data.data.url;
-      }
-
       await updateUserProfile({ displayName: name, photoURL });
-      setUser({ ...auth.currentUser, displayName: name, photoURL });
       toast.success("Profile updated successfully!");
-
       navigate(location.state?.from || "/");
     } catch (error) {
-      toast.error(error.message || "Failed to update profile");
+      toast.error(authErrorMessage(error) || "Failed to update profile");
     } finally {
       setBtnLoading(false);
     }
@@ -83,17 +57,18 @@ const UpdateProfile = () => {
 
           <div className="mb-4">
             <label
-              htmlFor="profilePhoto"
+              htmlFor="photoUrl"
               className="block text-sm font-medium text-gray-700"
             >
-              Profile Photo (optional):
+              Photo URL (optional):
             </label>
             <input
-              type="file"
-              id="profilePhoto"
-              name="profilePhoto"
-              accept="image/*"
-              className="file-input file-input-bordered file-input-sm w-full mt-1"
+              type="url"
+              id="photoUrl"
+              name="photoUrl"
+              defaultValue={user?.photoURL || ""}
+              placeholder="https://..."
+              className="input input-bordered w-full mt-1"
             />
           </div>
 

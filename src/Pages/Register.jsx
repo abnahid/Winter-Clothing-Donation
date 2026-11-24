@@ -4,15 +4,15 @@ import { Helmet } from "react-helmet";
 import toast from "react-hot-toast";
 import { FaEyeSlash } from "react-icons/fa";
 import { IoEyeSharp } from "react-icons/io5";
-import { Link, useNavigate } from "react-router-dom";
-import { AuthContext } from "./../context/AuthProvider";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { AuthContext, authErrorMessage } from "./../context/AuthProvider";
 
 const Register = () => {
   const [error, setError] = useState({});
   const navigate = useNavigate();
+  const location = useLocation();
   const [type, setType] = useState("password");
-  const { createUser, updateUserProfile, setUser, googleLogin } =
-    useContext(AuthContext);
+  const { createUser, googleLogin } = useContext(AuthContext);
 
   const [validations, setValidations] = useState({
     lower: false,
@@ -35,9 +35,11 @@ const Register = () => {
   };
 
   const handelGoogle = () => {
-    googleLogin().then((result) => {
-      navigate(location?.state?.from || "/");
-    });
+    try {
+      googleLogin();
+    } catch (error) {
+      toast.error(authErrorMessage(error));
+    }
   };
 
   const handleSubmit = (e) => {
@@ -63,23 +65,21 @@ const Register = () => {
       return;
     }
 
-    createUser(email, password)
-      .then((userCredential) => {
-        const user = userCredential.user;
-        toast.success("User created successfully!");
-        setUser(user);
-
-        return updateUserProfile({
-          displayName: name,
-          photoURL: photoUrl,
-        });
-      })
-      .then(() => {
-        navigate(location?.state?.from || "/");
+    createUser(email, password, name, photoUrl)
+      .then(({ confirmed }) => {
+        if (confirmed) {
+          toast.success("User created successfully!");
+          navigate(location?.state?.from || "/");
+        } else {
+          toast.success(
+            "Account created! Check your email to confirm your account.",
+            { duration: 5000 }
+          );
+          navigate("/login");
+        }
       })
       .catch((err) => {
-        console.error(err);
-        toast.error(`Error: ${err.message}`);
+        toast.error(authErrorMessage(err));
       });
   };
 
@@ -244,7 +244,7 @@ const Register = () => {
                         validations.length ? "text-green-500" : "text-red-500"
                       }
                     >
-                      At least 6 characters long
+                      At least 8 characters long
                     </p>
                   </div>
                 </div>
