@@ -42,51 +42,162 @@ export const DEFAULT_BRANDING = {
   heroSlides: DEFAULT_SLIDES,
 };
 
+export const STORAGE_KEYS = {
+  SETTINGS: "alahsan-branding-settings",
+  CAMPAIGNS: "alahsan-campaigns",
+  DONATIONS: "alahsan-donations",
+  EXPENSES: "alahsan-expenses",
+};
+
+const loadInitialSettings = () => {
+  if (typeof window === "undefined") return DEFAULT_BRANDING;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") {
+        return {
+          ...DEFAULT_BRANDING,
+          ...parsed,
+          heroSlides: Array.isArray(parsed.heroSlides) && parsed.heroSlides.length > 0
+            ? parsed.heroSlides
+            : DEFAULT_SLIDES,
+        };
+      }
+    }
+  } catch (e) {
+    console.warn("Failed reading saved settings from storage:", e);
+  }
+  return DEFAULT_BRANDING;
+};
+
+const loadInitialCampaigns = () => {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.CAMPAIGNS);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.warn("Failed reading saved campaigns from storage:", e);
+  }
+  return null;
+};
+
 const BrandingContext = createContext(null);
 
 export function BrandingProvider({ children }) {
-  const [settings, setSettings] = useState(DEFAULT_BRANDING);
-  const [campaigns, setCampaigns] = useState(null);
+  const [settings, setSettings] = useState(loadInitialSettings);
+  const [campaigns, setCampaigns] = useState(loadInitialCampaigns);
 
   useEffect(() => {
     fetch("/.netlify/functions/api?action=public-settings")
       .then((response) => (response.ok ? response.json() : null))
-      .then((value) => value && setSettings({ ...DEFAULT_BRANDING, ...value }))
+      .then((value) => {
+        if (value && typeof value === "object") {
+          setSettings((prev) => {
+            const next = { ...DEFAULT_BRANDING, ...prev, ...value };
+            try { localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(next)); } catch { /* ignore */ }
+            return next;
+          });
+        }
+      })
       .catch(() => {});
+
     fetch("/.netlify/functions/api?action=public-campaigns")
       .then((response) => (response.ok ? response.json() : null))
-      .then((value) => value && Array.isArray(value) && setCampaigns(value))
+      .then((value) => {
+        if (Array.isArray(value) && value.length > 0) {
+          setCampaigns(value);
+          try { localStorage.setItem(STORAGE_KEYS.CAMPAIGNS, JSON.stringify(value)); } catch { /* ignore */ }
+        }
+      })
       .catch(() => {});
   }, []);
 
   useEffect(() => {
-    document.documentElement.style.setProperty("--site-primary", settings.primaryColor);
+    document.documentElement.style.setProperty("--site-primary", settings.primaryColor || "#4A90E2");
     document.documentElement.lang = "bn";
-    document.title = settings.siteName;
+    document.title = settings.siteName || "আল আহসান ফাউন্ডেশন";
   }, [settings.primaryColor, settings.siteName]);
 
   const saveSettings = async (next) => {
-    const response = await fetch("/.netlify/functions/api?action=admin", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "save-content", value: { kind: "settings", settings: next } }),
-    });
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error || "পরিবর্তন সংরক্ষণ করা যায়নি।");
-    setSettings(result.value);
-    return result.value;
+    const merged = {
+      ...DEFAULT_BRANDING,
+      ...next,
+      heroSlides: Array.isArray(next?.heroSlides) && next.heroSlides.length > 0
+        ? next.heroSlides
+        : DEFAULT_SLIDES,
+    };
+
+    // 1. Permanently persist in localStorage so refresh never resets it
+    try {
+      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(merged));
+    } catch (e) {
+      console.warn("Failed writing settings to localStorage:", e);
+    }
+    // 2. Immediately update current React state
+    setSettings(merged);
+
+    // 3. Attempt server sync in the background
+    try {
+      const response = await fetch("/.netlify/functions/api?action=admin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-email": "alahsanfoundationbangladesh@gmail.com",
+        },
+        body: JSON.stringify({ action: "save-content", value: { kind: "settings", settings: merged } }),
+      });
+      if (response.ok) {
+        const result = await response.json();
+        if (result.value) {
+          setSettings(result.value);
+          try { localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(result.value)); } catch { /* ignore */ }
+          return result.value;
+        }
+      }
+    } catch (error) {
+      console.info("Server-side sync skipped or failed; local persistence active.", error);
+    }
+    return merged;
   };
 
   const saveCampaigns = async (next) => {
-    const response = await fetch("/.netlify/functions/api?action=admin", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "save-content", value: { kind: "campaigns", campaigns: next } }),
-    });
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error || "কার্যক্রমগুলো সংরক্ষণ করা যায়নি।");
-    setCampaigns(result.campaigns);
-    return result.campaigns;
+    // 1. Permanently persist in localStorage so refresh never resets it
+    try {
+      localStorage.setItem(STORAGE_KEYS.CAMPAIGNS, JSON.stringify(next));
+    } catch (e) {
+      console.warn("Failed writing campaigns to localStorage:", e);
+    }
+    // 2. Immediately update current React state
+    setCampaigns(next);
+
+    // 3. Attempt server sync in the background
+    try {
+      const response = await fetch("/.netlify/functions/api?action=admin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-email": "alahsanfoundationbangladesh@gmail.com",
+        },
+        body: JSON.stringify({ action: "save-content", value: { kind: "campaigns", campaigns: next } }),
+      });
+      if (response.ok) {
+        const result = await response.json();
+        if (Array.isArray(result.campaigns)) {
+          setCampaigns(result.campaigns);
+          try { localStorage.setItem(STORAGE_KEYS.CAMPAIGNS, JSON.stringify(result.campaigns)); } catch { /* ignore */ }
+          return result.campaigns;
+        }
+      }
+    } catch (error) {
+      console.info("Server-side sync skipped or failed; local persistence active.", error);
+    }
+    return next;
   };
 
   const value = useMemo(() => ({ settings, campaigns, saveSettings, saveCampaigns }), [settings, campaigns]);

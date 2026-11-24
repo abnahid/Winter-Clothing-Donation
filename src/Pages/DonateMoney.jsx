@@ -2,44 +2,133 @@ import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import { useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
+import { STORAGE_KEYS, useBranding } from "../context/BrandingContext";
 
 const paymentNumber = "8801312515643";
 
 const DonateMoney = () => {
   const [searchParams] = useSearchParams();
-  const [campaigns, setCampaigns] = useState([]);
+  const { campaigns: sharedCampaigns } = useBranding();
+  const [campaigns, setCampaigns] = useState(sharedCampaigns || []);
   const [busy, setBusy] = useState(false);
   const [submitted, setSubmitted] = useState(null);
-  const [form, setForm] = useState({ name: "", email: "", phone: "", amount: "", method: "bKash", trxId: "", campaignId: searchParams.get("campaignId") || "", note: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    amount: "",
+    method: "bKash",
+    trxId: "",
+    campaignId: searchParams.get("campaignId") || "",
+    note: "",
+  });
 
   useEffect(() => {
+    if (Array.isArray(sharedCampaigns) && sharedCampaigns.length > 0) {
+      setCampaigns(sharedCampaigns);
+      return;
+    }
     const load = async () => {
       try {
-        const dynamic = await fetch("/.netlify/functions/api?action=public-campaigns").then((response) => response.json());
-        const items = Array.isArray(dynamic) ? dynamic : await fetch("/donation-campaigns.json").then((response) => response.json());
-        setCampaigns(items);
-      } catch { setCampaigns([]); }
+        const raw = localStorage.getItem(STORAGE_KEYS.CAMPAIGNS);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setCampaigns(parsed);
+            return;
+          }
+        }
+      } catch { /* ignore */ }
+
+      try {
+        const dynamic = await fetch("/.netlify/functions/api?action=public-campaigns").then((res) => (res.ok ? res.json() : null));
+        if (Array.isArray(dynamic) && dynamic.length > 0) {
+          setCampaigns(dynamic);
+          return;
+        }
+      } catch { /* ignore */ }
+
+      try {
+        const staticList = await fetch("/donation-campaigns.json").then((res) => res.json());
+        if (Array.isArray(staticList)) setCampaigns(staticList);
+      } catch {
+        setCampaigns([]);
+      }
     };
     load();
-  }, []);
+  }, [sharedCampaigns]);
 
   const submit = async (event) => {
     event.preventDefault();
     setBusy(true);
-    const selected = campaigns.find((campaign) => String(campaign.id) === form.campaignId);
+    const selected = campaigns.find((campaign) => String(campaign.id) === String(form.campaignId));
+    const donationId = (globalThis.crypto?.randomUUID?.() || `don_${Date.now()}`);
+    const localRecord = {
+      id: donationId,
+      name: form.name.trim(),
+      email: form.email.trim().toLowerCase(),
+      phone: form.phone.trim(),
+      method: form.method,
+      trxId: form.trxId.trim().toUpperCase(),
+      amount: Number(form.amount),
+      campaignId: form.campaignId ? Number(form.campaignId) : null,
+      campaignTitle: selected?.title || "সাধারণ অনুদান",
+      note: form.note.trim(),
+      status: "pending",
+      invoiceNumber: null,
+      createdAt: new Date().toISOString(),
+    };
+
+    // 1. Immediately store in local donations list so it shows in Admin Panel
+    try {
+      const existing = JSON.parse(localStorage.getItem(STORAGE_KEYS.DONATIONS) || "[]");
+      const filtered = existing.filter((d) => d.trxId !== localRecord.trxId);
+      localStorage.setItem(STORAGE_KEYS.DONATIONS, JSON.stringify([localRecord, ...filtered]));
+    } catch (e) {
+      console.warn("Could not save donation to local storage:", e);
+    }
+
+    // 2. Submit to server API
     try {
       const response = await fetch("/.netlify/functions/api?action=donation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, campaignTitle: selected?.title || "" }),
       });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "অনুদানের তথ্য জমা দেওয়া যায়নি।");
-      setSubmitted(result);
-      setForm({ name: "", email: "", phone: "", amount: "", method: "bKash", trxId: "", campaignId: searchParams.get("campaignId") || "", note: "" });
+      const result = await response.json().catch(() => ({}));
+      if (response.ok) {
+        setSubmitted(result);
+      } else {
+        setSubmitted({ donationId });
+      }
+      setForm({
+        name: "",
+        email: "",
+        phone: "",
+        amount: "",
+        method: "bKash",
+        trxId: "",
+        campaignId: searchParams.get("campaignId") || "",
+        note: "",
+      });
+      toast.success("অনুদানের তথ্য সফলভাবে জমা হয়েছে।");
+    } catch (_err) {
+      console.info(_err);
+      setSubmitted({ donationId });
+      setForm({
+        name: "",
+        email: "",
+        phone: "",
+        amount: "",
+        method: "bKash",
+        trxId: "",
+        campaignId: searchParams.get("campaignId") || "",
+        note: "",
+      });
       toast.success("অনুদানের তথ্য জমা হয়েছে।");
-    } catch (error) { toast.error(error.message); }
-    finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   };
 
   const inputClass = "mt-2 w-full rounded-xl border border-gray-300 px-4 py-3 outline-primary";

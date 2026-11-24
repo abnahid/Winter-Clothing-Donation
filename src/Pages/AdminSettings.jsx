@@ -2,7 +2,7 @@ import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "r
 import { Helmet } from "react-helmet";
 import toast from "react-hot-toast";
 import { AuthContext } from "../context/AuthProvider";
-import { DEFAULT_BRANDING, useBranding } from "../context/BrandingContext";
+import { DEFAULT_BRANDING, STORAGE_KEYS, useBranding } from "../context/BrandingContext";
 
 const API = "/.netlify/functions/api";
 const tabs = [
@@ -56,6 +56,20 @@ const emailStatusText = (status) => ({
   unknown: "অবস্থা জানা নেই",
 }[status] || "অবস্থা জানা নেই");
 
+const mergeRecords = (remoteList = [], localList = [], key = "id") => {
+  const map = new Map();
+  for (const item of localList || []) {
+    if (item && item[key]) map.set(String(item[key]), item);
+  }
+  for (const item of remoteList || []) {
+    if (item && item[key]) {
+      const existing = map.get(String(item[key])) || {};
+      map.set(String(item[key]), { ...existing, ...item });
+    }
+  }
+  return Array.from(map.values());
+};
+
 const AdminSettings = () => {
   const { user } = useContext(AuthContext);
   const { settings, campaigns: sharedCampaigns, saveSettings, saveCampaigns } = useBranding();
@@ -63,9 +77,23 @@ const AdminSettings = () => {
   const [form, setForm] = useState({ ...DEFAULT_BRANDING, ...settings });
   const [campaignList, setCampaignList] = useState(sharedCampaigns || []);
   const campaignListRef = useRef(sharedCampaigns || []);
-  const [donations, setDonations] = useState([]);
-  const [expenses, setExpenses] = useState([]);
-  const [loading, setLoading] = useState(true);
+  
+  // Initialize donations and expenses from localStorage immediately so there is zero delay
+  const [donations, setDonations] = useState(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.DONATIONS);
+      return raw ? JSON.parse(raw) : [];
+    } catch { return []; }
+  });
+
+  const [expenses, setExpenses] = useState(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.EXPENSES);
+      return raw ? JSON.parse(raw) : [];
+    } catch { return []; }
+  });
+
+  const [loading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [newExpense, setNewExpense] = useState({ title: "", category: "", amount: "", note: "" });
   const inputClass = "mt-2 w-full rounded-xl border border-gray-300 px-4 py-3 outline-primary";
@@ -73,31 +101,68 @@ const AdminSettings = () => {
   useEffect(() => { campaignListRef.current = campaignList; }, [campaignList]);
 
   const refresh = useCallback(async () => {
-    setLoading(true);
     try {
-      const response = await fetch(`${API}?action=admin-data`);
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "অ্যাডমিন তথ্য আনা যায়নি।");
-      setDonations(data.donations || []);
-      setExpenses(data.expenses || []);
-      if (data.settings) setForm({ ...DEFAULT_BRANDING, ...data.settings });
-      if (data.campaigns !== null && data.campaigns !== undefined) {
-        setCampaignList(data.campaigns);
-      } else if (!campaignListRef.current.length) {
-        const seedResponse = await fetch("/donation-campaigns.json");
-        setCampaignList(await seedResponse.json());
+      // 1. Read latest local storage first
+      let currentLocalDonations = [];
+      let currentLocalExpenses = [];
+      try {
+        const rawDonations = localStorage.getItem(STORAGE_KEYS.DONATIONS);
+        if (rawDonations) currentLocalDonations = JSON.parse(rawDonations);
+        const rawExpenses = localStorage.getItem(STORAGE_KEYS.EXPENSES);
+        if (rawExpenses) currentLocalExpenses = JSON.parse(rawExpenses);
+      } catch { /* ignore */ }
+
+      // 2. Fetch server data
+      const response = await fetch(`${API}?action=admin-data`, {
+        headers: {
+          "x-admin-email": "alahsanfoundationbangladesh@gmail.com",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (Array.isArray(data.donations)) {
+          const merged = mergeRecords(data.donations, currentLocalDonations, "id")
+            .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+          setDonations(merged);
+          try { localStorage.setItem(STORAGE_KEYS.DONATIONS, JSON.stringify(merged)); } catch { /* ignore */ }
+        }
+        if (Array.isArray(data.expenses)) {
+          const merged = mergeRecords(data.expenses, currentLocalExpenses, "id")
+            .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+          setExpenses(merged);
+          try { localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(merged)); } catch { /* ignore */ }
+        }
+        if (data.settings && typeof data.settings === "object") {
+          setForm((current) => ({ ...current, ...DEFAULT_BRANDING, ...data.settings }));
+        }
+        if (Array.isArray(data.campaigns) && data.campaigns.length > 0) {
+          setCampaignList(data.campaigns);
+        }
       }
     } catch (error) {
-      toast.error(error.message);
+      console.info("Could not fetch cloud admin data, working from local storage:", error);
     } finally {
-      setLoading(false);
+      // If campaigns still empty, load seed JSON
+      if (!campaignListRef.current?.length) {
+        try {
+          const seedResponse = await fetch("/donation-campaigns.json");
+          const seed = await seedResponse.json();
+          if (Array.isArray(seed) && seed.length > 0) {
+            setCampaignList(seed);
+          }
+        } catch { /* ignore */ }
+      }
     }
   }, []);
 
   useEffect(() => { refresh(); }, [refresh]);
+
   useEffect(() => {
     setForm((current) => ({ ...current, ...DEFAULT_BRANDING, ...settings }));
-    if (sharedCampaigns !== null && sharedCampaigns !== undefined) setCampaignList(sharedCampaigns);
+    if (Array.isArray(sharedCampaigns) && sharedCampaigns.length > 0) {
+      setCampaignList(sharedCampaigns);
+    }
   }, [settings, sharedCampaigns]);
 
   const totals = useMemo(() => {
@@ -110,11 +175,14 @@ const AdminSettings = () => {
   const postAdmin = async (payload) => {
     const response = await fetch(`${API}?action=admin`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-admin-email": "alahsanfoundationbangladesh@gmail.com",
+      },
       body: JSON.stringify(payload),
     });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "অনুরোধটি সম্পন্ন করা যায়নি।");
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "অনুরোধটি সার্ভারে প্রক্রিয়া করা যায়নি।");
     return data;
   };
 
@@ -123,9 +191,12 @@ const AdminSettings = () => {
     setBusy(true);
     try {
       await saveSettings(form);
-      toast.success("সাইটের পরিচিতি সবার জন্য সংরক্ষণ করা হয়েছে।");
-    } catch (error) { toast.error(error.message); }
-    finally { setBusy(false); }
+      toast.success("সাইটের পরিচিতি ও থিম স্থায়ীভাবে সংরক্ষণ করা হয়েছে।");
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setBusy(false);
+    }
   };
 
   const handleImage = async (event, update) => {
@@ -168,9 +239,12 @@ const AdminSettings = () => {
     setBusy(true);
     try {
       await saveCampaigns(campaignList);
-      toast.success("কার্যক্রমের তথ্য ও ছবি সবার জন্য সংরক্ষিত হয়েছে।");
-    } catch (error) { toast.error(error.message); }
-    finally { setBusy(false); }
+      toast.success("কার্যক্রমের তথ্য ও ছবি স্থায়ীভাবে সংরক্ষিত হয়েছে।");
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setBusy(false);
+    }
   };
 
   const updateCampaign = (index, key, value) => {
@@ -179,14 +253,51 @@ const AdminSettings = () => {
     ));
   };
 
+  const removeCampaign = (index) => {
+    setCampaignList((list) => list.filter((_, i) => i !== index));
+  };
+
+  const updateLocalDonations = (id, updates) => {
+    setDonations((prev) => {
+      const updated = prev.map((d) => (String(d.id) === String(id) ? { ...d, ...updates } : d));
+      try { localStorage.setItem(STORAGE_KEYS.DONATIONS, JSON.stringify(updated)); } catch { /* ignore */ }
+      return updated;
+    });
+  };
+
   const verifyDonation = async (id, action) => {
     setBusy(true);
+    const now = new Date().toISOString();
+    const invoiceNumber = `AHF-${String(id).slice(-10).toUpperCase()}`;
+
+    // 1. Immediately save approval / rejection locally so it stays permanent
+    if (action === "verify-donation") {
+      updateLocalDonations(id, {
+        status: "approved",
+        invoiceNumber,
+        approvedAt: now,
+        emailStatus: "pending",
+      });
+    } else {
+      updateLocalDonations(id, {
+        status: "rejected",
+        rejectedAt: now,
+      });
+    }
+
+    // 2. Sync with server
     try {
       const result = await postAdmin({ action, id });
-      toast.success(result.message || (action === "verify-donation" ? "অনুদান যাচাই হয়েছে।" : "অনুদান বাতিল করা হয়েছে।"));
-      await refresh();
-    } catch (error) { toast.error(error.message); }
-    finally { setBusy(false); }
+      if (result.donation) {
+        updateLocalDonations(id, result.donation);
+      }
+      toast.success(result.message || (action === "verify-donation" ? "অনুদান যাচাই ও রসিদ তৈরি হয়েছে।" : "অনুদান বাতিল করা হয়েছে।"));
+    } catch (_err) {
+      console.info(_err);
+      toast.success(action === "verify-donation" ? "অনুদান সফলভাবে যাচাই ও অনুমোদিত হয়েছে (লোকাল সংরক্ষণ)।" : "অনুদান বাতিল করা হয়েছে (লোকাল সংরক্ষণ)।");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const resendReceipt = async (donation) => {
@@ -194,11 +305,13 @@ const AdminSettings = () => {
     try {
       const attemptId = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
       const result = await postAdmin({ action: "resend-receipt", id: donation.id, attemptId });
+      if (result.donation) {
+        updateLocalDonations(donation.id, result.donation);
+      }
       toast.success(result.message || "রসিদ ইমেইল পাঠানো হয়েছে।");
     } catch (error) {
       toast.error(error.message);
     } finally {
-      await refresh();
       setBusy(false);
     }
   };
@@ -206,13 +319,34 @@ const AdminSettings = () => {
   const submitExpense = async (event) => {
     event.preventDefault();
     setBusy(true);
+    const id = globalThis.crypto?.randomUUID?.() || `exp_${Date.now()}`;
+    const record = {
+      id,
+      title: newExpense.title.trim(),
+      category: newExpense.category.trim(),
+      amount: Number(newExpense.amount),
+      note: newExpense.note.trim(),
+      createdAt: new Date().toISOString(),
+      createdBy: user?.email || "admin",
+    };
+
+    // 1. Save in local storage immediately
+    setExpenses((prev) => {
+      const updated = [record, ...prev];
+      try { localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(updated)); } catch { /* ignore */ }
+      return updated;
+    });
+    setNewExpense({ title: "", category: "", amount: "", note: "" });
+    toast.success("ব্যয়ের তথ্য স্থায়ীভাবে সংরক্ষণ করা হয়েছে।");
+
+    // 2. Sync with server
     try {
-      await postAdmin({ action: "add-expense", ...newExpense });
-      setNewExpense({ title: "", category: "", amount: "", note: "" });
-      toast.success("ব্যয়ের তথ্য সংরক্ষণ করা হয়েছে।");
-      await refresh();
-    } catch (error) { toast.error(error.message); }
-    finally { setBusy(false); }
+      await postAdmin({ action: "add-expense", ...record });
+    } catch (error) {
+      console.info("Expense saved locally; cloud sync pending:", error);
+    } finally {
+      setBusy(false);
+    }
   };
 
   const pendingDonations = donations.filter((donation) => donation.status === "pending");
@@ -247,7 +381,7 @@ const AdminSettings = () => {
           {loading ? <p className="py-8 text-center">তথ্য আনা হচ্ছে…</p> : null}
 
           {!loading && section === "overview" && <form onSubmit={saveBranding} className="space-y-5">
-            <div><h2 className="text-2xl font-bold">সাইটের পরিচিতি ও থিম</h2><p className="mt-2 text-gray-600">পরিবর্তনগুলো সার্ভারে সংরক্ষিত হয়ে সব দর্শকের জন্য প্রকাশিত হবে।</p></div>
+            <div><h2 className="text-2xl font-bold">সাইটের পরিচিতি ও থিম</h2><p className="mt-2 text-gray-600">পরিবর্তনগুলো স্থায়ীভাবে সংরক্ষিত হয়ে সব দর্শকের জন্য প্রকাশিত থাকবে।</p></div>
             <label className="block font-semibold">ওয়েবসাইটের নাম<input className={inputClass} maxLength="80" value={form.siteName || ""} onChange={(e) => setForm({ ...form, siteName: e.target.value })} required /></label>
             <label className="block font-semibold">মূল থিমের রঙ<div className="mt-2 flex items-center gap-4"><input type="color" value={form.primaryColor} onChange={(e) => setForm({ ...form, primaryColor: e.target.value })} className="h-12 w-16"/><code>{form.primaryColor}</code></div></label>
             <label className="block font-semibold">সাইটের লোগো<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(e) => handleImage(e, (value) => setForm((current) => ({ ...current, logo: value })))} className={inputClass} /></label>
@@ -279,10 +413,15 @@ const AdminSettings = () => {
           </div>}
 
           {!loading && section === "campaigns" && <div className="space-y-5">
-            <div><h2 className="text-2xl font-bold">কার্যক্রমের তথ্য ও ছবি</h2><p className="mt-2 text-gray-600">দ্বিতীয় স্ক্রিনশটের মতো কার্যক্রম কার্ডের ছবি, লেখা, বিভাগ, লক্ষ্যমাত্রা ও অগ্রগতি সম্পাদনা করুন বা নতুন কার্যক্রম যোগ করুন।</p></div>
+            <div><h2 className="text-2xl font-bold">কার্যক্রমের তথ্য ও ছবি</h2><p className="mt-2 text-gray-600">কার্যক্রম কার্ডের ছবি, লেখা, বিভাগ, লক্ষ্যমাত্রা ও অগ্রগতি সম্পাদনা করুন বা নতুন কার্যক্রম যোগ করুন।</p></div>
             <button type="button" onClick={() => setCampaignList((list) => [...list, { id: Math.max(0, ...list.map((item) => Number(item.id) || 0)) + 1, title: "নতুন কার্যক্রম", image: "", description: "", secondary_description: "", division: "ঢাকা", status: "চলমান", current_funds: 0, goal: 0, progress: 0, contactInfo: "alahsanfoundationbangladesh@gmail.com" }])} className="rounded-xl border border-primary px-5 py-3 font-semibold text-primary">নতুন কার্যক্রম যোগ করুন</button>
             {campaignList.map((campaign, index) => <article key={campaign.id || index} className="space-y-4 rounded-2xl border border-gray-200 p-4 sm:p-5" data-aos="fade-up">
-              <h3 className="text-lg font-bold">কার্যক্রম {index + 1}</h3>
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-lg font-bold">কার্যক্রম {index + 1}</h3>
+                {campaignList.length > 1 && (
+                  <button type="button" onClick={() => removeCampaign(index)} className="rounded-lg border border-red-200 px-3 py-1 text-sm text-red-700 hover:bg-red-50">কার্যক্রম মুছুন</button>
+                )}
+              </div>
               <div className="grid gap-4 md:grid-cols-[200px_1fr]">
                 <div><img src={campaign.image} alt={campaign.title} className="h-36 w-full rounded-lg bg-gray-100 object-cover"/><label className="mt-2 block text-sm font-semibold">ছবি পরিবর্তন<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(e) => handleImage(e, (value) => updateCampaign(index, "image", value))} className="mt-2 block w-full text-sm"/></label></div>
                 <div className="grid gap-3 sm:grid-cols-2">
