@@ -1,77 +1,53 @@
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-import { Navigation, Pagination } from "swiper/modules";
+import "swiper/css/autoplay";
+import { Autoplay, Navigation, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
+import { Link } from "react-router-dom";
+import { DEFAULT_SLIDES, useBranding } from "../context/BrandingContext";
 
 const BannerSlider = () => {
-  const slides = [
-    {
-      image:
-        "https://i.ibb.co/Wy1D8Np/DALL-E-2024-11-19-04-43-42-A-volunteer-warmly-wrapping-a-child-in-a-cozy-blanket-during-winter-surro.webp",
-      heading: "সবার জন্য উষ্ণতা",
-      description:
-        "শীতবস্ত্র পেয়ে পরিবারগুলোতে ছড়িয়ে পড়ছে উষ্ণতা ও আশার আলো।",
-      buttonLabel: "এখনই অনুদান দিন",
-      buttonLink: "/donate",
-    },
-    {
-      image:
-        "https://i.ibb.co.com/KjC0cVX/DALL-E-2024-11-19-05-13-31-A-heartwarming-scene-of-volunteers-distributing-warm-winter-clothing-to-p.webp",
-      heading: "একসঙ্গে আমরা পরিবর্তন আনতে পারি",
-      description:
-        "এই শীতে প্রয়োজনমতো মানুষের হাতে শীতবস্ত্র তুলে দিচ্ছেন স্বেচ্ছাসেবীরা।",
-      buttonLabel: "কার্যক্রম দেখুন",
-      buttonLink: "/campaigns",
-    },
-    {
-      image:
-        "https://i.ibb.co.com/L5mK6Vs/DALL-E-2024-11-19-05-15-26-A-touching-scene-of-a-child-smiling-joyfully-as-they-receive-warm-winter.webp",
-      heading: "প্রতিটি সদয় উদ্যোগই মূল্যবান",
-      description: "উষ্ণ পোশাক পেয়ে হাসছে একটি শিশু।",
-      buttonLabel: "অংশ নিন",
-      buttonLink: "/campaigns",
-    },
-    {
-      image:
-        "https://i.ibb.co.com/cwxPF9M/DALL-E-2024-11-19-05-17-07-A-highly-realistic-and-heartwarming-scene-of-people-from-diverse-backgrou.webp",
-      heading: "আমাদের উদ্যোগে যুক্ত হোন",
-      description: "একসঙ্গে আমরা গড়ছি উজ্জ্বল ও উষ্ণ ভবিষ্যৎ।",
-      buttonLabel: "সহায়তা করুন",
-      buttonLink: "how-to-help",
-    },
-  ];
+  const { settings } = useBranding();
+  const slides = settings?.heroSlides?.length ? settings.heroSlides : DEFAULT_SLIDES;
+  const delayMs = Math.max(1, Number(settings?.sliderAutoplayDelay) || 5) * 1000;
 
   return (
-    <div className="carousel-container">
+    <div className="carousel-container" data-aos="fade-down">
       <Swiper
-        modules={[Navigation, Pagination]}
+        key={`banner-swiper-${delayMs}-${slides.length}`}
+        modules={[Navigation, Pagination, Autoplay]}
         navigation
         pagination={{ clickable: true }}
-        loop={true}
+        autoplay={{ delay: delayMs, disableOnInteraction: false }}
+        loop={slides.length > 1}
         className="mySwiper rounded-2xl mb-12"
       >
-        {slides.map((slide, index) => (
-          <SwiperSlide key={index}>
-            <div
-              className="relative w-full h-[400px] sm:h-[200px] md:h-[300px] lg:h-[500px] bg-cover bg-center"
-              style={{
-                backgroundImage: `url(${slide.image})`,
-              }}
-            >
-              <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center text-center text-white p-4">
-                <h2 className="text-3xl font-bold">{slide.heading}</h2>
-                <p className="mt-2 text-lg">{slide.description}</p>
-                <a
-                  href={slide.buttonLink}
-                  className="mt-4 px-6 py-2 bg-primary hover:bg-blue-400 rounded-md text-white font-semibold"
-                >
-                  {slide.buttonLabel}
-                </a>
+        {slides.map((slide, index) => {
+          const isInternal = slide.buttonLink?.startsWith("/") && !slide.buttonLink.startsWith("//");
+          return (
+            <SwiperSlide key={index}>
+              <div
+                className="relative w-full h-[400px] sm:h-[200px] md:h-[300px] lg:h-[500px] bg-cover bg-center"
+                style={{ backgroundImage: `url(${slide.image || DEFAULT_SLIDES[0].image})` }}
+              >
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center text-center text-white p-4">
+                  <h2 className="text-3xl font-bold">{slide.heading}</h2>
+                  <p className="mt-2 text-lg">{slide.description}</p>
+                  {slide.buttonLabel && (isInternal ? (
+                    <Link to={slide.buttonLink} className="mt-4 px-6 py-2 bg-primary hover:bg-blue-400 rounded-md text-white font-semibold">
+                      {slide.buttonLabel}
+                    </Link>
+                  ) : (
+                    <a href={slide.buttonLink || "/donate"} className="mt-4 px-6 py-2 bg-primary hover:bg-blue-400 rounded-md text-white font-semibold">
+                      {slide.buttonLabel}
+                    </a>
+                  ))}
+                </div>
               </div>
-            </div>
-          </SwiperSlide>
-        ))}
+            </SwiperSlide>
+          );
+        })}
       </Swiper>
     </div>
   );

@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { NavLink } from "react-router-dom";
 
-const Campaign = ({ campaign }) => {
+const Campaign = ({ campaign, index = 0 }) => {
   const {
     title,
     image,
@@ -12,9 +12,10 @@ const Campaign = ({ campaign }) => {
     progress,
     id,
   } = campaign;
+  const delay = Math.min((index % 6) * 100, 500);
 
   return (
-    <div className="card bg-base-100 rounded-lg" data-aos="fade-up">
+    <div className="card bg-base-100 rounded-lg" data-aos="fade-up" data-aos-delay={delay}>
       <figure>
         <img src={image} alt={title} />
       </figure>
@@ -35,11 +36,11 @@ const Campaign = ({ campaign }) => {
                 সংগৃহীত: ৳{Number(current_funds).toLocaleString("bn-BD")}
               </div>
             </div>
-            <span>{progress}%</span>
+            <span>{Number(progress) || 0}%</span>
           </div>
           <progress
             className="progress progress-primary w-full mt-2"
-            value={progress}
+            value={Number(progress) || 0}
             max="100"
           ></progress>
         </div>

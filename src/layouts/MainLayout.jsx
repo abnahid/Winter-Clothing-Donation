@@ -23,8 +23,10 @@ const MainLayout = () => {
 
   useEffect(() => {
     AOS.init({
-      duration: 1000,
-      once: true,
+      duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 800,
+      easing: "ease-out-cubic",
+      once: false,
+      offset: 60,
     });
 
     // Load the snowflake image
@@ -40,6 +42,31 @@ const MainLayout = () => {
         console.error("Failed to load snowflake image:", snowflake1);
     }
   }, []);
+
+  useEffect(() => {
+    const content = document.querySelector(".bg-gray-50");
+    if (!content) return undefined;
+    let frame;
+    const refreshReveals = () => {
+      content.querySelectorAll("h1, h2, h3, p, li").forEach((element) => {
+        if (!element.hasAttribute("data-aos") && !element.closest("[data-aos]")) {
+          element.setAttribute("data-aos", "fade-up");
+          element.setAttribute("data-aos-duration", "800");
+        }
+      });
+      AOS.refreshHard();
+    };
+    refreshReveals();
+    const observer = new MutationObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(refreshReveals);
+    });
+    observer.observe(content, { childList: true, subtree: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, [pathname]);
 
   return (
     <div>

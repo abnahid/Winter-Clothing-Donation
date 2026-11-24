@@ -37,7 +37,7 @@ async function requireAdmin() {
   return { user };
 }
 
-async function sendReceiptEmail(donation) {
+async function sendReceiptEmail(donation, attemptKey = "initial") {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM_EMAIL;
   if (!apiKey || !from) {
@@ -52,7 +52,7 @@ async function sendReceiptEmail(donation) {
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      "Idempotency-Key": `donation-invoice/${donation.id}`,
+      "Idempotency-Key": `donation-invoice/${donation.id}/${attemptKey}`,
     },
     body: JSON.stringify({
       from,
@@ -80,6 +80,8 @@ export default async (request) => {
         primaryColor: "#4A90E2",
         overview: "মানবিক সহায়তা ও শীতবস্ত্র বিতরণের মাধ্যমে সুবিধাবঞ্চিত মানুষের পাশে দাঁড়াই।",
         overviewImage: "",
+        sliderAutoplayDelay: 5,
+        heroSlides: null,
       }));
     }
 
@@ -158,18 +160,101 @@ export default async (request) => {
         const donation = await donations.get(`donation/${input.id}`, { type: "json" });
         if (!donation) return json({ error: "অনুদানের তথ্য পাওয়া যায়নি।" }, 404);
         if (donation.status === "approved") return json({ error: "এই অনুদান আগে যাচাই করা হয়েছে।" }, 409);
-        if (!process.env.RESEND_API_KEY || !process.env.RESEND_FROM_EMAIL) {
-          return json({ error: "রসিদ ইমেইল পাঠাতে Netlify-তে RESEND_API_KEY ও RESEND_FROM_EMAIL নিরাপদে সেট করুন।" }, 503);
+        
+        if (donation.status !== "pending") return json({ error: "শুধুমাত্র অপেক্ষমাণ অনুদান অনুমোদন করা যাবে।" }, 409);
+        const invoiceNumber = `AHF-${donation.id.slice(-10).toUpperCase()}`;
+        let emailStatus = "pending";
+        let emailError = null;
+        let emailId = null;
+
+        if (process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL) {
+          try {
+            const receipt = await sendReceiptEmail(donation, "approval");
+            emailStatus = "sent";
+            emailId = receipt.emailId;
+          } catch (err) {
+            emailStatus = "failed";
+            emailError = err.message || "ইমেইল পাঠানো যায়নি।";
+          }
+        } else {
+          emailStatus = "failed";
+          emailError = "Netlify-তে RESEND_API_KEY বা RESEND_FROM_EMAIL সেট করা নেই।";
         }
-        const receipt = await sendReceiptEmail(donation);
-        const updated = { ...donation, status: "approved", invoiceNumber: receipt.invoiceNumber, approvedAt: new Date().toISOString(), emailId: receipt.emailId };
+
+        const updated = {
+          ...donation,
+          status: "approved",
+          invoiceNumber,
+          approvedAt: new Date().toISOString(),
+          emailStatus,
+          emailError,
+          emailId,
+          lastEmailAttempt: new Date().toISOString(),
+          emailAttempts: [...(donation.emailAttempts || []), {
+            status: emailStatus,
+            attemptedAt: new Date().toISOString(),
+            emailId,
+            error: emailError,
+          }].slice(-10),
+        };
         await donations.setJSON(`donation/${input.id}`, updated);
-        return json({ success: true, donation: updated, message: "অনুদান যাচাই হয়েছে এবং রসিদ ইমেইলে পাঠানো হয়েছে।" });
+        const msg = emailStatus === "sent"
+          ? "অনুদান যাচাই হয়েছে এবং রসিদ ইমেইলে পাঠানো হয়েছে।"
+          : `অনুদান অনুমোদিত হয়েছে, কিন্তু রসিদ পাঠানো যায়নি (${emailError})। অ্যাডমিন প্যানেল থেকে পুনরায় পাঠাতে পারবেন।`;
+        return json({ success: true, donation: updated, message: msg });
+      }
+
+      if (input.action === "resend-receipt") {
+        const donation = await donations.get(`donation/${input.id}`, { type: "json" });
+        if (!donation) return json({ error: "অনুদানের তথ্য পাওয়া যায়নি।" }, 404);
+        if (donation.status !== "approved") return json({ error: "শুধুমাত্র অনুমোদিত অনুদানের রসিদ পুনরায় পাঠানো যাবে।" }, 400);
+
+        const targetEmail = donation.email;
+        if (!/^\S+@\S+\.\S+$/.test(targetEmail || "")) {
+          return json({ error: "দাতার ইমেইল ঠিকানাটি সঠিক নয়।" }, 400);
+        }
+        const attemptId = /^[a-zA-Z0-9-]{8,100}$/.test(input.attemptId || "")
+          ? input.attemptId
+          : crypto.randomUUID();
+        const attemptedAt = new Date().toISOString();
+        const toSend = { ...donation, email: targetEmail };
+        try {
+          if (!process.env.RESEND_API_KEY || !process.env.RESEND_FROM_EMAIL) {
+            throw new Error("Netlify-তে ইমেইল পাঠানোর সেটিংস নেই।");
+          }
+          const receipt = await sendReceiptEmail(toSend, attemptId);
+          const updated = {
+            ...donation,
+            emailStatus: "sent",
+            emailError: null,
+            emailId: receipt.emailId,
+            lastEmailAttempt: attemptedAt,
+            emailAttempts: [...(donation.emailAttempts || []), {
+              status: "sent", attemptedAt, emailId: receipt.emailId, error: null,
+            }].slice(-10),
+          };
+          await donations.setJSON(`donation/${input.id}`, updated);
+          return json({ success: true, donation: updated, message: "রসিদ ইমেইল সফলভাবে পাঠানো হয়েছে।" });
+        } catch (err) {
+          const errorMessage = err.message || "ইমেইল পাঠানো যায়নি।";
+          const updated = {
+            ...donation,
+            emailStatus: "failed",
+            emailError: errorMessage,
+            lastEmailAttempt: attemptedAt,
+            emailAttempts: [...(donation.emailAttempts || []), {
+              status: "failed", attemptedAt, emailId: null, error: errorMessage,
+            }].slice(-10),
+          };
+          await donations.setJSON(`donation/${input.id}`, updated);
+          return json({ error: `ইমেইল পাঠানো ব্যর্থ হয়েছে: ${errorMessage}`, donation: updated }, 502);
+        }
       }
 
       if (input.action === "reject-donation") {
         const donation = await donations.get(`donation/${input.id}`, { type: "json" });
         if (!donation) return json({ error: "অনুদানের তথ্য পাওয়া যায়নি।" }, 404);
+        if (donation.status !== "pending") return json({ error: "শুধুমাত্র অপেক্ষমাণ অনুদান বাতিল করা যাবে।" }, 409);
         const updated = { ...donation, status: "rejected", rejectedAt: new Date().toISOString() };
         await donations.setJSON(`donation/${input.id}`, updated);
         return json({ success: true, donation: updated });
@@ -195,12 +280,38 @@ export default async (request) => {
           if (!validImage(value.settings?.logo) || !validImage(value.settings?.overviewImage)) {
             return json({ error: "লোগো বা ওভারভিউ ছবির ঠিকানা সঠিক নয়।" }, 400);
           }
+          let heroSlides = null;
+          if (Array.isArray(value.settings?.heroSlides)) {
+            heroSlides = value.settings.heroSlides.slice(0, 10).map((s) => ({
+              image: cleanText(s.image, 3_000_000),
+              heading: cleanText(s.heading, 140),
+              description: cleanText(s.description, 500),
+              buttonLabel: cleanText(s.buttonLabel, 60),
+              buttonLink: cleanText(s.buttonLink, 200) || "/donate",
+            }));
+            for (const slide of heroSlides) {
+              const link = slide.buttonLink;
+              if (!(link.startsWith("/") && !link.startsWith("//")) && !/^https:\/\//i.test(link)) {
+                return json({ error: "স্লাইডের বোতামের ঠিকানা সাইটের পাতা অথবা HTTPS লিংক হতে হবে।" }, 400);
+              }
+            }
+            for (const slide of heroSlides) {
+              if (slide.image && !validImage(slide.image)) {
+                return json({ error: "স্লাইডের ছবির ফরম্যাট সঠিক নয়।" }, 400);
+              }
+            }
+          }
+          const rawDelay = Number(value.settings?.sliderAutoplayDelay);
+          const sliderAutoplayDelay = Number.isFinite(rawDelay) && rawDelay >= 1 && rawDelay <= 60 ? rawDelay : 5;
+
           const settings = {
             siteName: cleanText(value.settings?.siteName, 80),
             logo: cleanText(value.settings?.logo, 3_000_000),
             primaryColor: /^#[0-9a-f]{6}$/i.test(value.settings?.primaryColor || "") ? value.settings.primaryColor : "#4A90E2",
             overview: cleanText(value.settings?.overview, 3000),
             overviewImage: cleanText(value.settings?.overviewImage, 3_000_000),
+            sliderAutoplayDelay,
+            heroSlides,
           };
           await content.setJSON("settings", settings);
           return json({ success: true, value: settings });
@@ -212,13 +323,34 @@ export default async (request) => {
           if (value.campaigns.some((campaign) => !validImage(campaign.image))) {
             return json({ error: "কার্যক্রমের ছবি PNG, JPEG, WebP বা GIF হতে হবে, অথবা HTTPS ছবির ঠিকানা দিন।" }, 400);
           }
-          const campaigns = value.campaigns.map((campaign) => ({
-            ...campaign,
-            title: cleanText(campaign.title, 140),
-            description: cleanText(campaign.description, 2500),
-            secondary_description: cleanText(campaign.secondary_description, 4000),
-            image: cleanText(campaign.image, 3_000_000),
-          }));
+          const campaigns = value.campaigns.map((campaign, idx) => {
+            const goal = Math.max(0, Number(campaign.goal) || 0);
+            const current_funds = Math.max(0, Number(campaign.current_funds) || 0);
+            const calculatedProgress = goal > 0 ? Math.min(100, Math.round((current_funds / goal) * 100)) : 0;
+            const progress = goal > 0 ? calculatedProgress : 0;
+            const rawStatus = cleanText(campaign.status, 40);
+            const status = ["active", "চলমান"].includes(rawStatus.toLowerCase())
+              ? "চলমান"
+              : ["completed", "সম্পন্ন"].includes(rawStatus.toLowerCase())
+                ? "সম্পন্ন"
+                : ["paused", "স্থগিত"].includes(rawStatus.toLowerCase())
+                  ? "স্থগিত"
+                  : rawStatus || "চলমান";
+
+            return {
+              id: Number(campaign.id) || (idx + 1),
+              title: cleanText(campaign.title, 140),
+              description: cleanText(campaign.description, 2500),
+              secondary_description: cleanText(campaign.secondary_description, 4000),
+              image: cleanText(campaign.image, 3_000_000),
+              division: cleanText(campaign.division, 60) || "বাংলাদেশ",
+              status,
+              goal,
+              current_funds,
+              progress,
+              contactInfo: cleanText(campaign.contactInfo, 100) || "alahsanfoundationbangladesh@gmail.com",
+            };
+          });
           await content.setJSON("campaigns", campaigns);
           return json({ success: true, campaigns });
         }

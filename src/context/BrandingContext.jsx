@@ -1,12 +1,45 @@
 /* eslint-disable react/prop-types, react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
+export const DEFAULT_SLIDES = [
+  {
+    image: "https://i.ibb.co/Wy1D8Np/DALL-E-2024-11-19-04-43-42-A-volunteer-warmly-wrapping-a-child-in-a-cozy-blanket-during-winter-surro.webp",
+    heading: "সবার জন্য উষ্ণতা",
+    description: "শীতবস্ত্র পেয়ে পরিবারগুলোতে ছড়িয়ে পড়ছে উষ্ণতা ও আশার আলো।",
+    buttonLabel: "এখনই অনুদান দিন",
+    buttonLink: "/donate",
+  },
+  {
+    image: "https://i.ibb.co.com/KjC0cVX/DALL-E-2024-11-19-05-13-31-A-heartwarming-scene-of-volunteers-distributing-warm-winter-clothing-to-p.webp",
+    heading: "একসঙ্গে আমরা পরিবর্তন আনতে পারি",
+    description: "এই শীতে প্রয়োজনমতো মানুষের হাতে শীতবস্ত্র তুলে দিচ্ছেন স্বেচ্ছাসেবীরা।",
+    buttonLabel: "কার্যক্রম দেখুন",
+    buttonLink: "/campaigns",
+  },
+  {
+    image: "https://i.ibb.co.com/L5mK6Vs/DALL-E-2024-11-19-05-15-26-A-touching-scene-of-a-child-smiling-joyfully-as-they-receive-warm-winter.webp",
+    heading: "প্রতিটি সদয় উদ্যোগই মূল্যবান",
+    description: "উষ্ণ পোশাক পেয়ে হাসছে একটি শিশু।",
+    buttonLabel: "অংশ নিন",
+    buttonLink: "/campaigns",
+  },
+  {
+    image: "https://i.ibb.co.com/cwxPF9M/DALL-E-2024-11-19-05-17-07-A-highly-realistic-and-heartwarming-scene-of-people-from-diverse-backgrou.webp",
+    heading: "আমাদের উদ্যোগে যুক্ত হোন",
+    description: "একসঙ্গে আমরা গড়ছি উজ্জ্বল ও উষ্ণ ভবিষ্যৎ।",
+    buttonLabel: "সহায়তা করুন",
+    buttonLink: "/how-to-help",
+  },
+];
+
 export const DEFAULT_BRANDING = {
   siteName: "আল আহসান ফাউন্ডেশন",
   logo: "/Warm-Hearts-Initiative.png",
   primaryColor: "#4A90E2",
   overview: "মানবিক সহায়তা ও শীতবস্ত্র বিতরণের মাধ্যমে সুবিধাবঞ্চিত মানুষের পাশে দাঁড়াই।",
   overviewImage: "",
+  sliderAutoplayDelay: 5,
+  heroSlides: DEFAULT_SLIDES,
 };
 
 const BrandingContext = createContext(null);
