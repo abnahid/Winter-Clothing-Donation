@@ -13,7 +13,7 @@ const BannerSlider = () => {
       description:
         "শীতবস্ত্র পেয়ে পরিবারগুলোতে ছড়িয়ে পড়ছে উষ্ণতা ও আশার আলো।",
       buttonLabel: "এখনই অনুদান দিন",
-      buttonLink: "/campaigns",
+      buttonLink: "/donate",
     },
     {
       image:

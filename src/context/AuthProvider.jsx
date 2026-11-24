@@ -34,21 +34,21 @@ const toAppUser = (identityUser) => {
 // eslint-disable-next-line react-refresh/only-export-components
 export const authErrorMessage = (error) => {
   if (error instanceof MissingIdentityError) {
-    return "Login service is not available right now. Please try again later.";
+    return "লগইন সেবা এখন পাওয়া যাচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।";
   }
   if (error instanceof AuthError) {
     switch (error.status) {
       case 401:
-        return "Invalid email or password.";
+        return "ইমেইল অথবা পাসওয়ার্ড সঠিক নয়।";
       case 403:
-        return "Signups are not allowed on this site.";
+        return "এই ওয়েবসাইটে নতুন অ্যাকাউন্ট খোলা যাচ্ছে না।";
       case 422:
-        return error.message || "Invalid input. Check your email and password.";
+        return "ইমেইল বা পাসওয়ার্ডের তথ্য সঠিক নয়।";
       default:
         return error.message;
     }
   }
-  return error?.message || "Something went wrong.";
+  return "একটি সমস্যা হয়েছে। আবার চেষ্টা করুন।";
 };
 
 // Guard so the URL-hash callback is only processed once (StrictMode runs effects twice).

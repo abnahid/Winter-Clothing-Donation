@@ -28,6 +28,7 @@ const Navbar = () => {
           অনুদান কার্যক্রম
         </NavLink>
       </li>
+      <li><NavLink to="/donate" className={({ isActive }) => (isActive ? activeStyle : "")}>অর্থ অনুদান</NavLink></li>
       <li>
         <NavLink
           to="/how-to-help"
@@ -99,7 +100,7 @@ const Navbar = () => {
               className="btn btn-ghost btn-circle avatar"
             >
               <div className="w-10 rounded-full">
-                <img alt="User Avatar" src={user?.photoURL} />
+                <img alt="ব্যবহারকারীর ছবি" src={user?.photoURL} />
               </div>
             </div>
 
@@ -110,11 +111,11 @@ const Navbar = () => {
               <li>
                 <Link to="/profile" className="justify-between">
                   প্রোফাইল
-                  <span className="badge bg-green-200 text-green-800">New</span>
+                  <span className="badge bg-green-200 text-green-800">নতুন</span>
                 </Link>
               </li>
-              <li><Link to="/admin">অ্যাডমিন প্যানেল</Link></li>
-              <li><Link to="/dashboard">সেটিংস</Link></li>
+              {user?.email?.toLowerCase() === "alahsanfoundationbangladesh@gmail.com" && <li><Link to="/admin">অ্যাডমিন প্যানেল</Link></li>}
+              <li><Link to="/dashboard">আমার ড্যাশবোর্ড</Link></li>
               <li>
                 <button onClick={signOutUser} className="text-red-600">
                   লগআউট

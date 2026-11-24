@@ -19,10 +19,10 @@ const UpdateProfile = () => {
 
     try {
       await updateUserProfile({ displayName: name, photoURL });
-      toast.success("Profile updated successfully!");
+      toast.success("প্রোফাইল সফলভাবে হালনাগাদ করা হয়েছে!");
       navigate(location.state?.from || "/");
     } catch (error) {
-      toast.error(authErrorMessage(error) || "Failed to update profile");
+      toast.error(authErrorMessage(error) || "প্রোফাইল হালনাগাদ করতে ব্যর্থ হয়েছে");
     } finally {
       setBtnLoading(false);
     }
@@ -31,7 +31,7 @@ const UpdateProfile = () => {
   return (
     <div className="py-11">
       <Helmet>
-        <title>Update Profile - Warm Hearts</title>
+        <title>প্রোফাইল হালনাগাদ - আল আহসান ফাউন্ডেশন</title>
       </Helmet>
       <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
         <h2 className="text-2xl font-semibold mb-4 text-center">
@@ -67,7 +67,7 @@ const UpdateProfile = () => {
               id="photoUrl"
               name="photoUrl"
               defaultValue={user?.photoURL || ""}
-              placeholder="https://..."
+              placeholder="ছবির ঠিকানা"
               className="input input-bordered w-full mt-1"
             />
           </div>

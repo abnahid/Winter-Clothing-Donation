@@ -2,6 +2,7 @@ import { useContext } from "react";
 import { Helmet } from "react-helmet";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthProvider";
+import { useBranding } from "../context/BrandingContext";
 import {
   FaBehance,
   FaFacebookF,
@@ -10,19 +11,19 @@ import {
 } from "react-icons/fa6";
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
+  const { settings } = useBranding();
   const navigate = useNavigate();
   const location = useLocation();
   return (
     <div className="container mx-auto py-8">
       <Helmet>
-        <title>Dashboard - Warm Hearts</title>
+        <title>ড্যাশবোর্ড - {settings.siteName}</title>
       </Helmet>
       <h1 className="text-3xl font-bold text-center">
-        Welcome, {user?.displayName || "User"}!
+        স্বাগতম, {user?.displayName || "ব্যবহারকারী"}!
       </h1>
       <p className="text-center text-gray-600 mt-4 mb-8">
-        Welcome to your dashboard. Here you can view and update your profile
-        information.
+এখানে আপনার প্রোফাইলের তথ্য দেখতে ও হালনাগাদ করতে পারবেন।
       </p>
 
       {/* Profile Information */}
@@ -32,7 +33,7 @@ const Dashboard = () => {
             <img
               className="h-24 w-24 rounded-full object-cover border-4 border-white"
               src={user?.photoURL}
-              alt="প্রোফাইল"
+              alt="ব্যবহারকারীর প্রোফাইল ছবি"
             />
           </div>
         </div>
@@ -55,9 +56,7 @@ const Dashboard = () => {
               </a>
             </div>
             <p className="mt-4 text-gray-600 text-sm">
-              Known for their creative mindset,{" "}
-              {user.displayName || "this user"} enjoys contributing to
-              innovative campaigns.
+              {user.displayName || "আপনি"} মানবিক কার্যক্রমে অবদান রাখতে পারেন।
             </p>
             <div className="my-4">
               <button

@@ -30,9 +30,9 @@ const Campaign = ({ campaign }) => {
         <div className="mt-4">
           <div className="flex justify-between text-sm font-medium text-gray-500">
             <div className="flex gap-2 items-center">
-              <span>${goal}</span>
+              <span>৳{Number(goal).toLocaleString("bn-BD")}</span>
               <div className="text-neutral-400 text-base font-normal">
-                Rasied of ${current_funds}
+                সংগৃহীত: ৳{Number(current_funds).toLocaleString("bn-BD")}
               </div>
             </div>
             <span>{progress}%</span>

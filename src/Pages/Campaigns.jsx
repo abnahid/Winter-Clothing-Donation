@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import { useLoaderData } from "react-router-dom";
 import Campaign from "./Campaign";
+import { useBranding } from "../context/BrandingContext";
 
 const Campaigns = () => {
+  const { settings } = useBranding();
   const campaigns = useLoaderData();
   const [filteredCampaigns, setFilteredCampaigns] = useState([]);
   const [selectedDivision, setSelectedDivision] = useState("সব");
@@ -32,14 +34,13 @@ const Campaigns = () => {
   return (
     <div className="max-w-6xl mx-auto mt-3 mb-12">
       <Helmet>
-        <title>Donation Campaigns - Warm Hearts</title>
+        <title>অনুদান কার্যক্রমসমূহ - {settings.siteName}</title>
       </Helmet>
       <div className="container mx-auto py-8">
         <div className="pb-8">
           <h1 className="text-3xl font-bold text-center">অনুদান কার্যক্রম</h1>
           <p className="text-center text-gray-600 mt-4">
-            Browse our active campaigns and help those in need by donating
-            winter essentials.
+চলমান কার্যক্রমগুলো দেখুন এবং প্রয়োজনীয় শীতবস্ত্র ও অর্থ অনুদানের মাধ্যমে পাশে দাঁড়ান।
           </p>
         </div>
 
