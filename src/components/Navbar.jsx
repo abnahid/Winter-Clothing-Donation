@@ -37,6 +37,22 @@ const Navbar = () => {
           কীভাবে সহায়তা করবেন
         </NavLink>
       </li>
+      <li>
+        <NavLink
+          to="/about"
+          className={({ isActive }) => (isActive ? activeStyle : "")}
+        >
+          আমাদের সম্পর্কে
+        </NavLink>
+      </li>
+      <li>
+        <NavLink
+          to="/contact"
+          className={({ isActive }) => (isActive ? activeStyle : "")}
+        >
+          যোগাযোগ
+        </NavLink>
+      </li>
       {user?.email && (
         <li>
           <NavLink
