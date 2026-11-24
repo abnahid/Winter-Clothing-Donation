@@ -8,7 +8,8 @@ const paymentNumber = "8801312515643";
 
 const DonateMoney = () => {
   const [searchParams] = useSearchParams();
-  const { campaigns: sharedCampaigns } = useBranding();
+  const { settings, campaigns: sharedCampaigns } = useBranding();
+  const contact = settings?.contact || {};
   const [campaigns, setCampaigns] = useState(sharedCampaigns || []);
   const [busy, setBusy] = useState(false);
   const [submitted, setSubmitted] = useState(null);
@@ -22,6 +23,13 @@ const DonateMoney = () => {
     campaignId: searchParams.get("campaignId") || "",
     note: "",
   });
+
+  const currentPaymentNumber =
+    form.method === "bKash"
+      ? (contact.bkashNumber || contact.phone || paymentNumber)
+      : form.method === "Nagad"
+      ? (contact.nagadNumber || contact.phone || paymentNumber)
+      : (contact.rocketNumber || contact.phone || paymentNumber);
 
   useEffect(() => {
     if (Array.isArray(sharedCampaigns) && sharedCampaigns.length > 0) {
@@ -153,7 +161,7 @@ const DonateMoney = () => {
         <p className="mt-2 text-gray-600">বিকাশ, নগদ বা রকেট থেকে নিচের নম্বরে টাকা পাঠান। সফল লেনদেনের পর পাওয়া TrxID ফর্মে দিন। অনুদান যাচাই না হওয়া পর্যন্ত এটি অপেক্ষমাণ থাকবে।</p>
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-gray-50 p-4">
           <span className="font-bold">বিকাশ · নগদ · রকেট</span>
-          <a className="text-xl font-extrabold text-primary" href={`tel:${paymentNumber}`}>{paymentNumber}</a>
+          <a className="text-xl font-extrabold text-primary" href={`tel:${currentPaymentNumber}`}>{currentPaymentNumber}</a>
         </div>
       </section>
 
