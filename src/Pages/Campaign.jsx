@@ -22,7 +22,7 @@ const Campaign = ({ campaign }) => {
         <h2 className="card-title">{title}</h2>
         <p title={description}>{description}</p>
         <h2 className="text-lg font-medium">
-          Division:
+          বিভাগ:
           <span className="text-neutral-400 text-base font-medium ml-1">
             {division}
           </span>
@@ -46,7 +46,7 @@ const Campaign = ({ campaign }) => {
         <div className="card-actions w-full">
           <NavLink to={`/details/${id}`} className="w-full">
             <button className="badge badge-outline p-5 bg-primary text-white font-bold w-full rounded-lg">
-              View Details
+              বিস্তারিত দেখুন
             </button>
           </NavLink>
         </div>

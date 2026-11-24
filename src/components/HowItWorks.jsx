@@ -6,7 +6,7 @@ const HowItWorks = () => {
     >
       {/* Heading */}
       <h2 className="text-4xl font-bold text-center text-gray-900 mb-8">
-        How It Works
+        যেভাবে কাজ করে
       </h2>
 
       {/* Steps Section */}
@@ -14,7 +14,7 @@ const HowItWorks = () => {
         <div className="p-6 bg-white rounded-lg border-gay-200 text-center">
           <div className="text-4xl text-primary mb-4">1</div>
           <h3 className="text-lg font-bold text-gray-800 mb-2">
-            Browse Campaigns
+            কার্যক্রম দেখুন
           </h3>
           <p className="text-gray-600">
             View ongoing donation campaigns in your area and learn how you can
@@ -25,7 +25,7 @@ const HowItWorks = () => {
         <div className="p-6 bg-white rounded-lg border-gay-200 text-center">
           <div className="text-4xl text-primary mb-4">2</div>
           <h3 className="text-lg font-bold text-gray-800 mb-2">
-            Select Items to Donate
+            অনুদানের সামগ্রী বেছে নিন
           </h3>
           <p className="text-gray-600">
             Choose winter items like blankets, jackets, and sweaters to donate.
@@ -35,7 +35,7 @@ const HowItWorks = () => {
         <div className="p-6 bg-white rounded-lg border-gay-200 text-center">
           <div className="text-4xl text-primary mb-4">3</div>
           <h3 className="text-lg font-bold text-gray-800 mb-2">
-            Fill Out the Donation Form
+            অনুদান ফর্ম পূরণ করুন
           </h3>
           <p className="text-gray-600">
             Provide your pickup details or find the nearest drop-off points.
@@ -45,7 +45,7 @@ const HowItWorks = () => {
         <div className="p-6 bg-white rounded-lg border-gay-200 text-center">
           <div className="text-4xl text-primary mb-4">4</div>
           <h3 className="text-lg font-bold text-gray-800 mb-2">
-            Spread Warmth
+            উষ্ণতা ছড়িয়ে দিন
           </h3>
           <p className="text-gray-600">
             Volunteers will ensure your donations reach those in need.
@@ -57,20 +57,20 @@ const HowItWorks = () => {
       <div className="flex justify-between items-center gap-6  flex-col md:flex-row">
         <div className="bg-white p-6 rounded-lg w-full md:w-1/3">
           <h3 className="text-2xl font-bold text-gray-800 mb-4">
-            Supported Divisions
+            কার্যক্রমের বিভাগ
           </h3>
           <p className="text-gray-600">
-            We are currently active in the following divisions:
+            বর্তমানে আমরা নিচের বিভাগগুলোতে কাজ করছি:
           </p>
           <ul className="list-disc list-inside text-gray-600 mt-4">
-            <li>Dhaka</li>
-            <li>Chattogram</li>
-            <li>Sylhet</li>
-            <li>Khulna</li>
-            <li>Rajshahi</li>
-            <li>Barishal</li>
-            <li>Rangpur</li>
-            <li>Mymensingh</li>
+            <li>ঢাকা</li>
+            <li>চট্টগ্রাম</li>
+            <li>সিলেট</li>
+            <li>খুলনা</li>
+            <li>রাজশাহী</li>
+            <li>বরিশাল</li>
+            <li>রংপুর</li>
+            <li>ময়মনসিংহ</li>
           </ul>
         </div>
         <div className="text-center w-full md:w-2/3">

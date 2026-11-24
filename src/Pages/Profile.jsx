@@ -29,7 +29,7 @@ const Profile = () => {
             <img
               className="h-24 w-24 rounded-full object-cover border-4 border-white"
               src={user?.photoURL}
-              alt="Profile"
+              alt="প্রোফাইল"
             />
           </div>
         </div>
@@ -65,7 +65,7 @@ const Profile = () => {
                 }
                 className="btn bg-gradient-to-r from-[#1da1f2] to-[#0e71c8] animate-gradient text-BgColor rounded-full"
               >
-                Update Profile
+                প্রোফাইল হালনাগাদ
               </button>
               <button
                 onClick={signOutUser}

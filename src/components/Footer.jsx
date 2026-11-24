@@ -1,7 +1,9 @@
 import { FaFacebookF, FaInstagram, FaTwitter } from "react-icons/fa6";
 import { NavLink } from "react-router-dom";
+import { useBranding } from "../context/BrandingContext";
 
 const Footer = () => {
+  const { settings } = useBranding();
   return (
     <footer className="relative bg-primary rounded-2xl p-10 w-11/12 mx-auto text-BgColor mt-12">
       {/* Content */}
@@ -10,7 +12,7 @@ const Footer = () => {
         <div className="space-y-4">
           <div className="flex items-center">
             <div className="normal-case text-2xl font-semibold">
-              <h1>Warm Hearts</h1>
+              <h1>{settings.siteName}</h1>
             </div>
           </div>
 
@@ -25,22 +27,22 @@ const Footer = () => {
           <p className="text-base font-bold text-BgColor">About us</p>
           <ul className="space-y-1 flex flex-col">
             <NavLink to="/campaigns" className="text-gray-200 link link-hover">
-              Donation
+              অনুদান
             </NavLink>
-            <li className="text-gray-200 link link-hover">Events</li>
-            <li className="text-gray-200 link link-hover">Blog</li>
+            <li className="text-gray-200 link link-hover">ইভেন্ট</li>
+            <li className="text-gray-200 link link-hover">ব্লগ</li>
             <NavLink to="/about" className="text-gray-200 link link-hover">
-              About
+              আমাদের সম্পর্কে
             </NavLink>
             <NavLink to="/contact" className="text-gray-200 link link-hover">
-              Contact Us
+              যোগাযোগ
             </NavLink>
           </ul>
         </div>
 
         <div className="space-y-4 pr-10">
           <div className="footer-title opacity-100 text-BgColor">
-            Contact Us
+            যোগাযোগ
           </div>
           <ul className="space-y-1">
             <li>
@@ -63,8 +65,7 @@ const Footer = () => {
       {/* Footer */}
       <aside className="flex items-center justify-center flex-col lg:justify-between lg:flex-row">
         <p className="text-BgColor">
-          Copyright © {new Date().getFullYear()} - All right reserved by Warm
-          Hearts Initiative
+          Copyright © {new Date().getFullYear()} - সর্বস্বত্ব সংরক্ষিত — {settings.siteName}
         </p>
         <div className="flex mt-4 space-x-4 sm:justify-center lg:mt-0">
           <a

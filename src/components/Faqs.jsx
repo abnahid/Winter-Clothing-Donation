@@ -3,14 +3,14 @@ const Faqs = () => {
     <section className="my-16">
       <div className="container mx-auto p-5">
         <h2 className="text-4xl font-bold text-center text-gray-900 mb-8">
-          Frequently Asked Questions
+          সাধারণ জিজ্ঞাসা
         </h2>
 
         <div className="space-y-5">
           <div className="collapse collapse-arrow bg-white">
             <input type="radio" name="my-accordion-2" />
             <div className="collapse-title text-xl font-medium">
-              How does your service work?
+              আপনাদের কার্যক্রম কীভাবে কাজ করে?
             </div>
             <div className="collapse-content">
               <p>
@@ -24,7 +24,7 @@ const Faqs = () => {
           <div className="collapse collapse-arrow bg-white">
             <input type="radio" name="my-accordion-2" />
             <div className="collapse-title text-xl font-medium">
-              Is there a fee to use your platform?
+              এই প্ল্যাটফর্ম ব্যবহার করতে কি কোনো ফি লাগে?
             </div>
             <div className="collapse-content">
               <p>
@@ -38,7 +38,7 @@ const Faqs = () => {
           <div className="collapse collapse-arrow bg-white">
             <input type="radio" name="my-accordion-2" />
             <div className="collapse-title text-xl font-medium">
-              What happens if I need support?
+              সহায়তা প্রয়োজন হলে কী করব?
             </div>
             <div className="collapse-content">
               <p>
@@ -52,7 +52,7 @@ const Faqs = () => {
           <div className="collapse collapse-arrow bg-white">
             <input type="radio" name="my-accordion-2" />
             <div className="collapse-title text-xl font-medium">
-              Can I cancel my request after booking?
+              অনুরোধ জমা দেওয়ার পর কি বাতিল করা যাবে?
             </div>
             <div className="collapse-content">
               <p>
@@ -66,7 +66,7 @@ const Faqs = () => {
           <div className="collapse collapse-arrow bg-white">
             <input type="radio" name="my-accordion-2" />
             <div className="collapse-title text-xl font-medium">
-              What services do you offer?
+              আপনারা কী ধরনের সহায়তা দেন?
             </div>
             <div className="collapse-content">
               <p>

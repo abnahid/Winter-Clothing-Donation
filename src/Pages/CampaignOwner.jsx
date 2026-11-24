@@ -77,7 +77,7 @@ const CampaignOwner = () => {
           </div>
 
           <div className="w-full text-left space-x-2">
-            <h3 className="text-lg font-semibold mb-2">Volunteer History:</h3>
+            <h3 className="text-lg font-semibold mb-2">স্বেচ্ছাসেবার ইতিহাস:</h3>
             <ul className="list-disc pl-5 text-gray-700 text-sm">
               {owner.volunteer_history.map((history, index) => (
                 <li key={index}>
@@ -90,7 +90,7 @@ const CampaignOwner = () => {
 
           <div className="mt-6">
             <p className="text-gray-600">
-              <strong>Total Campaigns Participated:</strong>{" "}
+              <strong>মোট অংশগ্রহণ করা কার্যক্রম:</strong>{" "}
               {owner.total_volunteer_count}
             </p>
           </div>

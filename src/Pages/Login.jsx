@@ -53,7 +53,7 @@ const Login = () => {
           {/* Sign-in Form */}
           <div className="p-8 rounded-2xl bg-white shadow">
             <h2 className="text-gray-800 text-center text-2xl font-bold">
-              Sign in
+              লগইন
             </h2>
             <div>
               <a
@@ -81,7 +81,7 @@ const Login = () => {
                   </svg>
                 </div>
                 <h1 className="px-4 py-3 w-5/6 text-center text-gray-600 font-bold">
-                  Sign in with Google
+                  গুগল দিয়ে লগইন
                 </h1>
               </a>
 
@@ -91,7 +91,7 @@ const Login = () => {
                   href="#"
                   className="text-xs text-center text-gray-500 uppercase"
                 >
-                  or login with email
+                  অথবা ইমেইল দিয়ে লগইন
                 </a>
                 <span className="border-b w-1/5 lg:w-1/4"></span>
               </div>
@@ -100,7 +100,7 @@ const Login = () => {
               {/* Username Field */}
               <div>
                 <label className="text-gray-800 text-sm mb-2 block">
-                  Email
+                  ইমেইল
                 </label>
                 <div className="relative flex items-center">
                   <input
@@ -136,7 +136,7 @@ const Login = () => {
               {/* Password Field */}
               <div>
                 <label className="text-gray-800 text-sm mb-2 block">
-                  Password
+                  পাসওয়ার্ড
                 </label>
                 <div className="relative">
                   <input
@@ -170,7 +170,7 @@ const Login = () => {
                     htmlFor="remember-me"
                     className="ml-3 block text-sm text-gray-800"
                   >
-                    Remember me
+                    আমাকে মনে রাখুন
                   </label>
                 </div>
                 <div className="text-sm">
@@ -179,7 +179,7 @@ const Login = () => {
                     onClick={handleForgotPassword}
                     className="text-primary hover:underline font-semibold"
                   >
-                    Forgot your password?
+                    পাসওয়ার্ড ভুলে গেছেন?
                   </button>
                 </div>
               </div>
@@ -190,7 +190,7 @@ const Login = () => {
                   type="submit"
                   className="w-full py-3 px-4 text-sm tracking-wide rounded-lg text-white bg-primary hover:bg-blue-700 focus:outline-none"
                 >
-                  Sign in
+                  লগইন
                 </button>
               </div>
 
@@ -201,7 +201,7 @@ const Login = () => {
                   to="/register"
                   className="text-primary hover:underline ml-1 whitespace-nowrap font-semibold"
                 >
-                  Register here
+                  এখানে নিবন্ধন করুন
                 </Link>
               </p>
             </form>

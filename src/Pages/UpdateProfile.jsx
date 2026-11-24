@@ -35,7 +35,7 @@ const UpdateProfile = () => {
       </Helmet>
       <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
         <h2 className="text-2xl font-semibold mb-4 text-center">
-          Update Profile
+          প্রোফাইল হালনাগাদ
         </h2>
         <form onSubmit={handleUpdate}>
           <div className="mb-4">
@@ -43,7 +43,7 @@ const UpdateProfile = () => {
               htmlFor="name"
               className="block text-sm font-medium text-gray-700"
             >
-              Name:
+              নাম:
             </label>
             <input
               type="text"
@@ -60,7 +60,7 @@ const UpdateProfile = () => {
               htmlFor="photoUrl"
               className="block text-sm font-medium text-gray-700"
             >
-              Photo URL (optional):
+              ছবির লিংক (ঐচ্ছিক):
             </label>
             <input
               type="url"
@@ -82,10 +82,10 @@ const UpdateProfile = () => {
             {btnLoading ? (
               <div className="flex justify-center items-center gap-2">
                 <span className="loading loading-spinner loading-md"></span>
-                <p>Updating...</p>
+                <p>হালনাগাদ হচ্ছে...</p>
               </div>
             ) : (
-              "Update Profile"
+              "প্রোফাইল হালনাগাদ"
             )}
           </button>
         </form>

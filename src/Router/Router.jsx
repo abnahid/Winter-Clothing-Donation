@@ -14,6 +14,8 @@ import Profile from "../Pages/Profile";
 import Register from "../Pages/Register";
 import UpdateProfile from "../Pages/UpdateProfile";
 import PrivateRoute from "./PrivateRoute";
+import AdminRoute from "./AdminRoute";
+import AdminSettings from "../Pages/AdminSettings";
 
 const router = createBrowserRouter(
   [
@@ -49,6 +51,14 @@ const router = createBrowserRouter(
             <PrivateRoute>
               <Profile />
             </PrivateRoute>
+          ),
+        },
+        {
+          path: "/admin",
+          element: (
+            <AdminRoute>
+              <AdminSettings />
+            </AdminRoute>
           ),
         },
         {
