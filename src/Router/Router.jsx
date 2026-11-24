@@ -16,6 +16,7 @@ import UpdateProfile from "../Pages/UpdateProfile";
 import PrivateRoute from "./PrivateRoute";
 import AdminRoute from "./AdminRoute";
 import AdminSettings from "../Pages/AdminSettings";
+import DonateMoney from "../Pages/DonateMoney";
 
 const router = createBrowserRouter(
   [
@@ -31,7 +32,14 @@ const router = createBrowserRouter(
         {
           path: "campaigns",
           element: <Campaigns />,
-          loader: () => fetch("/donation-campaigns.json"),
+          loader: async () => {
+            try {
+              const dynamic = await fetch("/.netlify/functions/api?action=public-campaigns");
+              const campaigns = await dynamic.json();
+              if (Array.isArray(campaigns)) return campaigns;
+            } catch { /* Use the static campaign list when shared storage is unavailable. */ }
+            return fetch("/donation-campaigns.json");
+          },
         },
         {
           path: "how-to-help",
@@ -44,6 +52,10 @@ const router = createBrowserRouter(
         {
           path: "contact",
           element: <Contact />,
+        },
+        {
+          path: "donate",
+          element: <DonateMoney />,
         },
         {
           path: "profile",
@@ -85,8 +97,13 @@ const router = createBrowserRouter(
             </PrivateRoute>
           ),
           loader: async ({ params }) => {
-            const res = await fetch("/donation-campaigns.json");
-            const data = await res.json();
+            let data = null;
+            try {
+              const dynamic = await fetch("/.netlify/functions/api?action=public-campaigns");
+              const result = await dynamic.json();
+              if (Array.isArray(result)) data = result;
+            } catch { /* Use the static campaign list when shared storage is unavailable. */ }
+            if (!data) data = await fetch("/donation-campaigns.json").then((res) => res.json());
             const singleData = data.find((d) => d.id === parseInt(params.id));
             return singleData;
           },

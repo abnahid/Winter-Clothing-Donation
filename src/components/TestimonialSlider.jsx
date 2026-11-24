@@ -9,43 +9,43 @@ const TestimonialSlider = () => {
   const testimonials = [
     {
       id: 1,
-      name: "Abdul Jabbar Al Nahid",
-      role: "Beneficiary",
+      name: "আব্দুল জব্বার আল নাহিদ",
+      role: "উপকারভোগী",
       image: "https://i.ibb.co.com/XZdP5hF/2023-05-15-1.jpg",
       message:
-        "We received jackets and blankets when we needed them most during the coldest nights of winter. The support brought warmth and comfort to our family. Thank you for your kindness!",
+        "শীতের সবচেয়ে কঠিন সময়ে আমরা জ্যাকেট ও কম্বল পেয়েছি। এই সহায়তা আমাদের পরিবারকে উষ্ণতা ও স্বস্তি দিয়েছে। আপনাদের সদয় উদ্যোগের জন্য ধন্যবাদ!",
       location: "সিলেট",
-      title: "Winter Aid Distribution Success",
+      title: "শীতকালীন সহায়তা বিতরণ",
     },
     {
       id: 2,
-      name: "Rahim Uddin",
-      role: "Volunteer",
+      name: "রহিম উদ্দিন",
+      role: "স্বেচ্ছাসেবক",
       image: "https://i.ibb.co.com/931fDV3/pexels-photo-749091.webp",
       message:
-        "Distributing blankets in Khulna was an unforgettable experience. Seeing the joy and gratitude on people's faces made every effort worthwhile. This initiative gave me a deeper understanding of humanity.",
+        "খুলনায় কম্বল বিতরণের অভিজ্ঞতা আমার মনে থাকবে। মানুষের আনন্দ ও কৃতজ্ঞতা দেখে সব পরিশ্রম সার্থক মনে হয়েছে।",
       location: "খুলনা",
-      title: "Smiles Through Winter Relief",
+      title: "শীতকালীন সহায়তায় হাসি",
     },
     {
       id: 3,
-      name: "Ayesha Khatun",
-      role: "Beneficiary",
+      name: "আয়েশা খাতুন",
+      role: "উপকারভোগী",
       image: "https://i.ibb.co.com/tZc6dPW/pexels-1844773-3426975.webp",
       message:
-        "Thanks to this wonderful initiative, my children stayed warm and safe during the harsh winter months. We are truly grateful for this amazing support during a difficult time.",
+        "এই উদ্যোগের সহায়তায় শীতের কঠিন সময়ে আমার সন্তানেরা উষ্ণ ও নিরাপদ ছিল। এমন সহায়তার জন্য আমরা কৃতজ্ঞ।",
       location: "ঢাকা",
-      title: "Helping Families Stay Warm",
+      title: "পরিবারের পাশে উষ্ণ সহায়তা",
     },
     {
       id: 4,
-      name: "Karim Ali",
-      role: "Volunteer",
+      name: "করিম আলী",
+      role: "স্বেচ্ছাসেবক",
       image: "https://i.ibb.co.com/B67Ggd1/pexels-photo-7562076.webp",
       message:
-        "I feel privileged to be part of such a noble cause. Helping people in Chattogram during tough times taught me the true value of giving back to the community.",
+        "এমন মানবিক কাজে যুক্ত হতে পেরে আমি আনন্দিত। কঠিন সময়ে চট্টগ্রামের মানুষের পাশে দাঁড়িয়ে সমাজকে ফিরিয়ে দেওয়ার মূল্য বুঝেছি।",
       location: "চট্টগ্রাম",
-      title: "Giving Back in Chattogram",
+      title: "চট্টগ্রামে মানুষের পাশে",
     },
   ];
 

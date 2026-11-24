@@ -1,15 +1,18 @@
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet";
+import { useBranding } from "../context/BrandingContext";
 
 const AboutUs = () => {
+  const { settings } = useBranding();
   return (
     <div className="min-h-screen bg-gray-50">
+      <Helmet><title>আমাদের সম্পর্কে - {settings.siteName}</title></Helmet>
       {/* Header Section */}
       <header className="bg-primary text-white py-10 rounded-lg">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl font-bold">আমাদের সম্পর্কে</h1>
           <p className="mt-2 text-lg">
-            Learn more about our mission, vision, and the people behind our
-            initiative.
+আমাদের লক্ষ্য, স্বপ্ন এবং এই উদ্যোগের পেছনের মানুষদের সম্পর্কে জানুন।
           </p>
         </div>
       </header>
@@ -28,15 +31,10 @@ const AboutUs = () => {
               আমাদের লক্ষ্য
             </h2>
             <p className="text-gray-600">
-              At <span className="font-bold">উষ্ণ হৃদয় উদ্যোগ</span>, our
-              mission is to bring positive change to communities in need by
-              running impactful donation campaigns and empowering individuals to
-              contribute meaningfully.
+              <span className="font-bold">{settings.siteName}</span>-এর লক্ষ্য হলো শীতবস্ত্র ও প্রয়োজনীয় সহায়তা পৌঁছে দিয়ে অসহায় মানুষের পাশে দাঁড়ানো এবং সবাইকে মানবিক কাজে অংশ নেওয়ার সুযোগ করে দেওয়া।
             </p>
             <p className="mt-4 text-gray-600">
-              We believe in the power of compassion and collective effort to
-              make the world a better place. Whether through education,
-              healthcare, or basic necessities, every contribution matters.
+              আমরা বিশ্বাস করি, সহমর্মিতা ও সম্মিলিত উদ্যোগ মানুষের জীবনে ইতিবাচক পরিবর্তন আনে। শিক্ষা, স্বাস্থ্যসেবা কিংবা নিত্যপ্রয়োজনীয় সহায়তা—প্রতিটি অবদানই মূল্যবান।
             </p>
           </div>
         </div>
@@ -49,10 +47,7 @@ const AboutUs = () => {
               আমাদের স্বপ্ন
             </h2>
             <p className="text-gray-600 max-w-3xl mx-auto">
-              To create a world where everyone has access to basic necessities
-              and opportunities to thrive. We aim to inspire a global community
-              of givers and changemakers to bridge gaps and foster sustainable
-              development.
+              এমন একটি সমাজ গড়ে তোলা, যেখানে প্রত্যেকে প্রয়োজনীয় সহায়তা ও এগিয়ে যাওয়ার সুযোগ পায়। মানুষের মধ্যে দান, সহমর্মিতা এবং টেকসই উন্নয়নের মনোভাব ছড়িয়ে দেওয়াই আমাদের স্বপ্ন।
             </p>
           </div>
         </div>
@@ -66,33 +61,33 @@ const AboutUs = () => {
           <div className="text-center">
             <img
               src="https://i.ibb.co.com/XZdP5hF/2023-05-15-1.jpg"
-              alt="Team Member"
+              alt="দলের সদস্য"
               className="w-24 h-24 mx-auto rounded-full"
             />
             <h3 className="mt-4 text-lg font-semibold text-gray-800">
-              Abdul Jabbar Al Nahid
+              আব্দুল জব্বার আল নাহিদ
             </h3>
             <p className="text-gray-600">প্রতিষ্ঠাতা ও প্রধান নির্বাহী</p>
           </div>
           <div className="text-center">
             <img
               src="https://i.ibb.co.com/xLVb14x/website-photos-2.webp"
-              alt="Team Member"
+              alt="দলের সদস্য"
               className="w-24 h-24 mx-auto rounded-full"
             />
             <h3 className="mt-4 text-lg font-semibold text-gray-800">
-              Hari Ravichandran
+              হরি রবিচন্দ্রন
             </h3>
             <p className="text-gray-600">প্রধান পরিচালন কর্মকর্তা</p>
           </div>
           <div className="text-center">
             <img
               src="https://i.ibb.co.com/nsgmKpH/Shamsh-Hadi.jpg"
-              alt="Team Member"
+              alt="দলের সদস্য"
               className="w-24 h-24 mx-auto rounded-full"
             />
             <h3 className="mt-4 text-lg font-semibold text-gray-800">
-              Shamsh Hadi
+              শামশ হাদি
             </h3>
             <p className="text-gray-600">বিপণন প্রধান</p>
           </div>
@@ -107,7 +102,7 @@ const AboutUs = () => {
             এই উদ্যোগের অংশ হয়ে মানুষের জীবনে ইতিবাচক পরিবর্তন আনুন।
           </p>
           <Link
-            to="/campaigns"
+            to="/donate"
             className="btn mt-4 px-6 py-3 bg-white text-primary rounded-lg shadow hover:bg-gray-100"
           >
             অংশ নিন

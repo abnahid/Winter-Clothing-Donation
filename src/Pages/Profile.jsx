@@ -21,7 +21,7 @@ const Profile = () => {
   return (
     <div className="py-11">
       <Helmet>
-        <title>{user.displayName} - Warm Hearts</title>
+        <title>{user.displayName} - আল আহসান ফাউন্ডেশন</title>
       </Helmet>
       <div className="max-w-sm mx-auto bg-white rounded-2xl shadow-md overflow-hidden">
         <div className="relative bg-gradient-to-r from-[#1da1f2] to-[#0e71c8] animate-gradient h-32">
@@ -52,9 +52,7 @@ const Profile = () => {
               </a>
             </div>
             <p className="mt-4 text-gray-600 text-sm">
-              Known for their creative mindset,{" "}
-              {user.displayName || "this user"} enjoys contributing to
-              innovative campaigns.
+              {user.displayName || "আপনি"} মানবিক কার্যক্রমে অবদান রাখতে পারেন।
             </p>
             <div className="flex justify-around items-center my-4">
               <button
@@ -71,10 +69,10 @@ const Profile = () => {
                 onClick={signOutUser}
                 className="btn bg-gradient-to-r from-[#d5135a] to-[#f05924] animate-gradient text-BgColor rounded-full"
               >
-                Log-Out
+                লগআউট
               </button>
             </div>
-            <p className="mt-2 text-gray-500 text-xs">Developed by abnahid</p>
+            <p className="mt-2 text-gray-500 text-xs">উদ্যোগ পরিচালনায়: আল আহসান ফাউন্ডেশন</p>
           </div>
         </div>
       </div>

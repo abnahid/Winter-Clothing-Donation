@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { useContext, useState } from "react";
 import { Helmet } from "react-helmet";
 import toast from "react-hot-toast";
@@ -6,9 +5,11 @@ import { FaEyeSlash } from "react-icons/fa";
 import { IoEyeSharp } from "react-icons/io5";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthContext, authErrorMessage } from "../context/AuthProvider";
+import { useBranding } from "../context/BrandingContext";
 
 const Login = () => {
   const { loginUser, googleLogin } = useContext(AuthContext);
+  const { settings } = useBranding();
   const [type, setType] = useState("password");
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
@@ -29,8 +30,8 @@ const Login = () => {
     const password = form.get("password");
 
     loginUser(email, password)
-      .then(({ user }) => {
-        toast.success(`User Login successfully!: ${user.email}`);
+      .then(() => {
+        toast.success("সফলভাবে লগইন হয়েছে।");
         e.target.reset();
         navigate(location?.state?.from || "/");
       })
@@ -46,7 +47,7 @@ const Login = () => {
   return (
     <div className="bg-gray-50">
       <Helmet>
-        <title>Sign in - Warm Hearts</title>
+        <title>লগইন - {settings.siteName}</title>
       </Helmet>
       <div className="min-h-screen flex flex-col items-center justify-center py-6 px-4">
         <div className="max-w-md w-full">
@@ -110,7 +111,7 @@ const Login = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full text-gray-800 text-sm border border-gray-300 px-4 py-3 rounded-md outline-primary"
-                    placeholder="Enter user name"
+                    placeholder="আপনার ইমেইল লিখুন"
                   />
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -143,7 +144,7 @@ const Login = () => {
                     type={type}
                     name="password"
                     className="w-full pr-10 text-gray-800 text-sm border border-gray-300 px-4 py-3 rounded-md outline-primary"
-                    placeholder="Enter your password"
+                    placeholder="আপনার পাসওয়ার্ড লিখুন"
                     required
                   />
                   <span
@@ -196,7 +197,7 @@ const Login = () => {
 
               {/* Register Link */}
               <p className="text-gray-800 text-sm !mt-8 text-center">
-                Don&apos;t have an account
+                অ্যাকাউন্ট নেই?
                 <Link
                   to="/register"
                   className="text-primary hover:underline ml-1 whitespace-nowrap font-semibold"

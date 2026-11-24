@@ -17,20 +17,18 @@ const Footer = () => {
           </div>
 
           <p className="text-base text-gray-200 max-w-72">
-            empowers communities through generosity and impactful actions. Join
-            us to make a difference together.
+মানবিক সহায়তা ও শীতবস্ত্র বিতরণের মাধ্যমে মানুষের পাশে দাঁড়াই। আমাদের উদ্যোগে যুক্ত হোন।
           </p>
         </div>
 
         {/* Navigation Links */}
         <div className="space-y-4">
-          <p className="text-base font-bold text-BgColor">About us</p>
+          <p className="text-base font-bold text-BgColor">আমাদের সম্পর্কে</p>
           <ul className="space-y-1 flex flex-col">
             <NavLink to="/campaigns" className="text-gray-200 link link-hover">
               অনুদান
             </NavLink>
-            <li className="text-gray-200 link link-hover">ইভেন্ট</li>
-            <li className="text-gray-200 link link-hover">ব্লগ</li>
+            <li><NavLink to="/donate" className="text-gray-200 link link-hover">অর্থ অনুদান</NavLink></li>
             <NavLink to="/about" className="text-gray-200 link link-hover">
               আমাদের সম্পর্কে
             </NavLink>
@@ -46,17 +44,12 @@ const Footer = () => {
           </div>
           <ul className="space-y-1">
             <li>
-              <a>
-                123 Winter Lane,
-                <br /> Dhaka, Bangladesh
-              </a>
+              <a>বাংলাদেশ</a>
             </li>
             <li>
-              <a>support@warmhearts.com</a>
+              <a>alahsanfoundationbangladesh@gmail.com</a>
             </li>
-            <li>
-              <a>+880 123-456-7890</a>
-            </li>
+
           </ul>
         </div>
       </div>
@@ -65,7 +58,7 @@ const Footer = () => {
       {/* Footer */}
       <aside className="flex items-center justify-center flex-col lg:justify-between lg:flex-row">
         <p className="text-BgColor">
-          Copyright © {new Date().getFullYear()} - সর্বস্বত্ব সংরক্ষিত — {settings.siteName}
+          কপিরাইট © {new Date().getFullYear()} · সর্বস্বত্ব সংরক্ষিত — {settings.siteName}
         </p>
         <div className="flex mt-4 space-x-4 sm:justify-center lg:mt-0">
           <a

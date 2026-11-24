@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { useContext, useState } from "react";
 import { Helmet } from "react-helmet";
 import toast from "react-hot-toast";
@@ -6,6 +5,7 @@ import { FaEyeSlash } from "react-icons/fa";
 import { IoEyeSharp } from "react-icons/io5";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthContext, authErrorMessage } from "./../context/AuthProvider";
+import { useBranding } from "../context/BrandingContext";
 
 const Register = () => {
   const [error, setError] = useState({});
@@ -13,6 +13,7 @@ const Register = () => {
   const location = useLocation();
   const [type, setType] = useState("password");
   const { createUser, googleLogin } = useContext(AuthContext);
+  const { settings } = useBranding();
 
   const [validations, setValidations] = useState({
     lower: false,
@@ -51,28 +52,28 @@ const Register = () => {
     const password = form.get("password");
 
     if (name.length < 5) {
-      setError({ ...error, name: "Name should be more than 5 characters" });
+      setError({ ...error, name: "নাম কমপক্ষে ৫ অক্ষরের হতে হবে" });
       return;
     }
 
     if (!email || !password) {
-      toast.error("Email and password are required");
+      toast.error("ইমেইল ও পাসওয়ার্ড লিখুন");
       return;
     }
 
     if (!validations.lower || !validations.upper || !validations.length) {
-      toast.error("Password does not meet complexity requirements");
+      toast.error("পাসওয়ার্ডে ছোট হাতের ও বড় হাতের ইংরেজি অক্ষর এবং কমপক্ষে ৮টি অক্ষর থাকতে হবে");
       return;
     }
 
     createUser(email, password, name, photoUrl)
       .then(({ confirmed }) => {
         if (confirmed) {
-          toast.success("User created successfully!");
+          toast.success("সফলভাবে অ্যাকাউন্ট তৈরি হয়েছে!");
           navigate(location?.state?.from || "/");
         } else {
           toast.success(
-            "Account created! Check your email to confirm your account.",
+            "অ্যাকাউন্ট তৈরি হয়েছে। নিশ্চিতকরণের জন্য ইমেইল দেখুন।",
             { duration: 5000 }
           );
           navigate("/login");
@@ -86,7 +87,7 @@ const Register = () => {
   return (
     <div className="bg-gray-50">
       <Helmet>
-        <title>Sign up - Warm Hearts</title>
+        <title>নিবন্ধন - {settings.siteName}</title>
       </Helmet>
       <div className="min-h-screen flex flex-col items-center justify-center py-6 px-4">
         <div className="max-w-md w-full">
@@ -148,7 +149,7 @@ const Register = () => {
                     type="text"
                     required
                     className="w-full text-gray-800 text-sm border border-gray-300 px-4 py-3 rounded-md outline-primary"
-                    placeholder="Enter user name"
+                    placeholder="আপনার নাম লিখুন"
                   />
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -184,7 +185,7 @@ const Register = () => {
                   type="url"
                   name="photoUrl"
                   className="w-full pr-10 text-gray-800 text-sm border border-gray-300 px-4 py-3 rounded-md outline-primary"
-                  placeholder="Enter photo URL"
+                  placeholder="ছবির লিংক লিখুন"
                 />
               </div>
 
@@ -196,7 +197,7 @@ const Register = () => {
                   type="email"
                   name="email"
                   className="w-full pr-10 text-gray-800 text-sm border border-gray-300 px-4 py-3 rounded-md outline-primary"
-                  placeholder="Enter your email address"
+                  placeholder="আপনার ইমেইল লিখুন"
                   required
                 />
               </div>
@@ -211,7 +212,7 @@ const Register = () => {
                     type={type}
                     name="password"
                     className="w-full pr-10 text-gray-800 text-sm border border-gray-300 px-4 py-3 rounded-md outline-primary"
-                    placeholder="Enter your password"
+                    placeholder="আপনার পাসওয়ার্ড লিখুন"
                     onChange={(e) => handleChange(e.target.value)}
                     required
                   />
@@ -229,14 +230,14 @@ const Register = () => {
                         validations.lower ? "text-green-500" : "text-red-500"
                       }
                     >
-                      Contains a lowercase letter
+                      একটি ছোট হাতের ইংরেজি অক্ষর থাকতে হবে
                     </p>
                     <p
                       className={
                         validations.upper ? "text-green-500" : "text-red-500"
                       }
                     >
-                      Contains an uppercase letter
+                      একটি বড় হাতের ইংরেজি অক্ষর থাকতে হবে
                     </p>
 
                     <p
@@ -244,7 +245,7 @@ const Register = () => {
                         validations.length ? "text-green-500" : "text-red-500"
                       }
                     >
-                      At least 8 characters long
+                      কমপক্ষে ৮ অক্ষরের হতে হবে
                     </p>
                   </div>
                 </div>
@@ -261,7 +262,7 @@ const Register = () => {
                   htmlFor="remember-me"
                   className="ml-3 block text-sm text-gray-800"
                 >
-                  Accept{" "}
+                  আমি সম্মত হচ্ছি{" "}
                   <a href="#" className="text-neutral-500 font-semibold">
                     শর্তাবলি
                   </a>

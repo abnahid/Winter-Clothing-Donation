@@ -12,43 +12,42 @@ const HowItWorks = () => {
       {/* Steps Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
         <div className="p-6 bg-white rounded-lg border-gay-200 text-center">
-          <div className="text-4xl text-primary mb-4">1</div>
+          <div className="text-4xl text-primary mb-4">১</div>
           <h3 className="text-lg font-bold text-gray-800 mb-2">
             কার্যক্রম দেখুন
           </h3>
           <p className="text-gray-600">
-            View ongoing donation campaigns in your area and learn how you can
-            help.
+            আপনার এলাকার চলমান অনুদান কার্যক্রম দেখুন এবং কীভাবে সহায়তা করবেন জানুন।
           </p>
         </div>
 
         <div className="p-6 bg-white rounded-lg border-gay-200 text-center">
-          <div className="text-4xl text-primary mb-4">2</div>
+          <div className="text-4xl text-primary mb-4">২</div>
           <h3 className="text-lg font-bold text-gray-800 mb-2">
             অনুদানের সামগ্রী বেছে নিন
           </h3>
           <p className="text-gray-600">
-            Choose winter items like blankets, jackets, and sweaters to donate.
+            অনুদানের জন্য কম্বল, জ্যাকেট ও সোয়েটারের মতো শীতবস্ত্র বেছে নিন।
           </p>
         </div>
 
         <div className="p-6 bg-white rounded-lg border-gay-200 text-center">
-          <div className="text-4xl text-primary mb-4">3</div>
+          <div className="text-4xl text-primary mb-4">৩</div>
           <h3 className="text-lg font-bold text-gray-800 mb-2">
             অনুদান ফর্ম পূরণ করুন
           </h3>
           <p className="text-gray-600">
-            Provide your pickup details or find the nearest drop-off points.
+            আপনার কাছ থেকে সংগ্রহের ঠিকানা জানান অথবা নিকটস্থ জমাদানের স্থান খুঁজুন।
           </p>
         </div>
 
         <div className="p-6 bg-white rounded-lg border-gay-200 text-center">
-          <div className="text-4xl text-primary mb-4">4</div>
+          <div className="text-4xl text-primary mb-4">৪</div>
           <h3 className="text-lg font-bold text-gray-800 mb-2">
             উষ্ণতা ছড়িয়ে দিন
           </h3>
           <p className="text-gray-600">
-            Volunteers will ensure your donations reach those in need.
+            স্বেচ্ছাসেবীরা অনুদান প্রয়োজনীয় মানুষের কাছে পৌঁছে দেবেন।
           </p>
         </div>
       </div>
@@ -76,7 +75,7 @@ const HowItWorks = () => {
         <div className="text-center w-full md:w-2/3">
           <img
             src="https://i.ibb.co.com/pdMxkdK/a-visually-appealing-flowchart-illustrating-the-st-n-2t-Zgx-NRS2grbs-Tme-Rm-MA-v-BCXOUft-Sk66m4-J9-B.jpg" // Replace with a flowchart/graphic URL
-            alt="Flowchart showing how it works"
+            alt="সহায়তা কার্যক্রমের ধাপচিত্র"
             className="object-cover object-center w-full 
             h-[410px]  lg:h-[350px] rounded-lg "
           />

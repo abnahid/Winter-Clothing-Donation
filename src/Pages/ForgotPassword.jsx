@@ -3,10 +3,12 @@ import { Helmet } from "react-helmet";
 import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AuthContext, authErrorMessage } from "../context/AuthProvider";
+import { useBranding } from "../context/BrandingContext";
 
 const ForgotPassword = () => {
   const { resetPassword, setNewPassword, pendingRecovery } =
     useContext(AuthContext);
+  const { settings } = useBranding();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -24,7 +26,7 @@ const ForgotPassword = () => {
     setBusy(true);
     try {
       await resetPassword(email);
-      toast.success("Check your email for a password reset link.", {
+      toast.success("পাসওয়ার্ড রিসেট লিংকের জন্য আপনার ইমেইল চেক করুন।", {
         duration: 5000,
       });
     } catch (error) {
@@ -37,13 +39,13 @@ const ForgotPassword = () => {
   const handleNewPassword = async (e) => {
     e.preventDefault();
     if (password.length < 8) {
-      toast.error("Password must be at least 8 characters long");
+      toast.error("পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।");
       return;
     }
     setBusy(true);
     try {
       await setNewPassword(password);
-      toast.success("Password updated.");
+      toast.success("পাসওয়ার্ড সফলভাবে হালনাগাদ করা হয়েছে।");
       navigate("/");
     } catch (error) {
       toast.error(authErrorMessage(error));
@@ -56,8 +58,7 @@ const ForgotPassword = () => {
     <div className="py-11">
       <Helmet>
         <title>
-          {pendingRecovery ? "নতুন পাসওয়ার্ড সেট করুন" : "পাসওয়ার্ড ভুলে গেছেন"} - Warm
-          Hearts
+          {pendingRecovery ? "নতুন পাসওয়ার্ড সেট করুন" : "পাসওয়ার্ড ভুলে গেছেন"} - {settings.siteName}
         </title>
       </Helmet>
       <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow">
@@ -100,7 +101,7 @@ const ForgotPassword = () => {
                 disabled={busy}
                 className="w-full bg-primary text-white py-2 rounded-md disabled:opacity-75"
               >
-                {busy ? "Sending..." : "পাসওয়ার্ড রিসেট"}
+                {busy ? "পাঠানো হচ্ছে…" : "পাসওয়ার্ড রিসেট"}
               </button>
             </form>
           </>

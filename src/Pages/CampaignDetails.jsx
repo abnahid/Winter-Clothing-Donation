@@ -1,11 +1,14 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import toast from "react-hot-toast";
 import { useLoaderData } from "react-router-dom";
 import CampaignOwner from "./CampaignOwner";
+import { useBranding } from "../context/BrandingContext";
 
 const CampaignDetails = () => {
   const campaign = useLoaderData();
+  const { settings } = useBranding();
 
   const [form, setForm] = useState({
     quantity: "",
@@ -33,7 +36,7 @@ const CampaignDetails = () => {
   return (
     <div className="w-11/12 mx-auto pt-5 block lg:grid lg:grid-cols-12 gap-5">
       <Helmet>
-        <title>{campaign.title} - Warm Hearts</title>
+        <title>{campaign.title} - {settings.siteName}</title>
       </Helmet>
       <div className="col-span-8">
         <h1 className="text-3xl font-bold">{campaign.title}</h1>
@@ -50,11 +53,13 @@ const CampaignDetails = () => {
           <strong>বিভাগ:</strong> {campaign.division}
         </p>
         <p className="mt-2 text-gray-500">
-          <strong>অবস্থা:</strong> {campaign.status}
+          <strong>অবস্থা:</strong> {campaign.status === "Active" ? "চলমান" : campaign.status}
         </p>
         <p className="mt-2 text-gray-500">
           <strong>যোগাযোগের তথ্য:</strong> {campaign.contactInfo}
         </p>
+
+        <Link to={`/donate?campaignId=${campaign.id}`} className="mt-6 inline-flex rounded-xl bg-primary px-6 py-3 font-semibold text-white">এই কার্যক্রমে অর্থ অনুদান দিন</Link>
 
         {/* Donation Form */}
         <form

@@ -1,16 +1,19 @@
 import { IoCallOutline, IoLocationOutline } from "react-icons/io5";
 import { MdOutlineMarkEmailUnread } from "react-icons/md";
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet";
+import { useBranding } from "../context/BrandingContext";
 const Contact = () => {
+  const { settings } = useBranding();
   return (
     <div className="min-h-screen bg-gray-50">
+      <Helmet><title>যোগাযোগ - {settings.siteName}</title></Helmet>
       {/* Header Section */}
       <header className="bg-blue-500 text-white py-10 rounded-lg">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl font-bold">যোগাযোগ</h1>
           <p className="mt-2 text-lg">
-            We&apos;d love to hear from you! Reach out to us with any questions
-            or feedback.
+আপনার প্রশ্ন বা মতামত জানাতে আমাদের সঙ্গে যোগাযোগ করুন।
           </p>
         </div>
       </header>
@@ -24,8 +27,7 @@ const Contact = () => {
               যোগাযোগ করুন
             </h2>
             <p className="text-gray-600 mb-6">
-              Fill out the form below, and we&apos;ll get back to you as soon as
-              possible.
+নিচের ফর্মে আপনার বার্তা লিখুন, আমরা যোগাযোগ করার চেষ্টা করব।
             </p>
             <form className="space-y-6">
               <div>
@@ -88,25 +90,21 @@ const Contact = () => {
               যোগাযোগের তথ্য
             </h2>
             <p className="text-gray-600 mb-6">
-              You can also reach us via email or phone. Our team is here to
-              assist you!
+ইমেইলে আমাদের সঙ্গে যোগাযোগ করতে পারেন।
             </p>
             <ul className="space-y-4">
               <li className="flex items-center gap-4">
                 <IoCallOutline className="text-2xl text-primary" />
-
-                <span className="text-gray-700">+1 (555) 123-4567</span>
+                <span className="text-gray-700">অনুদানের নম্বর: +৮৮০ ১৩১২৫১৫৬৪৩</span>
               </li>
               <li className="flex items-center gap-4">
                 <MdOutlineMarkEmailUnread className="text-2xl text-primary" />
 
-                <span className="text-gray-700">info@warmhearts.com</span>
+                <span className="text-gray-700">alahsanfoundationbangladesh@gmail.com</span>
               </li>
               <li className="flex items-center gap-4">
                 <IoLocationOutline className="text-2xl text-primary" />
-                <span className="text-gray-700">
-                  123 Charity Lane, Compassion City, Country
-                </span>
+                <span className="text-gray-700">বাংলাদেশ</span>
               </li>
             </ul>
           </div>
@@ -121,7 +119,7 @@ const Contact = () => {
             এই উদ্যোগের অংশ হয়ে মানুষের জীবনে ইতিবাচক পরিবর্তন আনুন।
           </p>
           <Link
-            to="/campaigns"
+            to="/donate"
             className="btn mt-4 px-6 py-3 bg-white text-primary rounded-lg shadow hover:bg-gray-100"
           >
             অংশ নিন

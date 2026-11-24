@@ -1,9 +1,8 @@
-import { Link, useRouteError } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 
 const NotFound = () => {
-  const error = useRouteError();
   return (
     <div>
       <Navbar />
@@ -17,7 +16,7 @@ const NotFound = () => {
               দুঃখিত, একটি অপ্রত্যাশিত সমস্যা হয়েছে।
             </p>
             <p className="mb-4 text-lg font-light text-gray-300">
-              <i>{error.statusText || error.message}</i>
+              <i>পাতাটি পাওয়া যায়নি অথবা সাময়িক সমস্যা হয়েছে।</i>
             </p>
             <Link
               to={`/`}
