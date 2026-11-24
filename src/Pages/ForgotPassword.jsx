@@ -56,18 +56,18 @@ const ForgotPassword = () => {
     <div className="py-11">
       <Helmet>
         <title>
-          {pendingRecovery ? "Set New Password" : "Forgot Password"} - Warm
+          {pendingRecovery ? "নতুন পাসওয়ার্ড সেট করুন" : "পাসওয়ার্ড ভুলে গেছেন"} - Warm
           Hearts
         </title>
       </Helmet>
       <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow">
         {pendingRecovery ? (
           <>
-            <h1 className="text-2xl font-bold text-center">Set New Password</h1>
+            <h1 className="text-2xl font-bold text-center">নতুন পাসওয়ার্ড সেট করুন</h1>
             <form className="mt-6" onSubmit={handleNewPassword}>
               <input
                 type="password"
-                placeholder="Enter a new password"
+                placeholder="নতুন পাসওয়ার্ড লিখুন"
                 className="w-full border border-gray-300 px-4 py-3 rounded-md outline-primary mb-4"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -79,17 +79,17 @@ const ForgotPassword = () => {
                 disabled={busy}
                 className="w-full bg-primary text-white py-2 rounded-md disabled:opacity-75"
               >
-                {busy ? "Saving..." : "Save Password"}
+                {busy ? "সংরক্ষণ হচ্ছে..." : "পাসওয়ার্ড সংরক্ষণ"}
               </button>
             </form>
           </>
         ) : (
           <>
-            <h1 className="text-2xl font-bold text-center">Forgot Password</h1>
+            <h1 className="text-2xl font-bold text-center">পাসওয়ার্ড ভুলে গেছেন</h1>
             <form className="mt-6" onSubmit={handleResetPassword}>
               <input
                 type="email"
-                placeholder="Enter your email"
+                placeholder="আপনার ইমেইল লিখুন"
                 className="w-full border border-gray-300 px-4 py-3 rounded-md outline-primary mb-4"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -100,7 +100,7 @@ const ForgotPassword = () => {
                 disabled={busy}
                 className="w-full bg-primary text-white py-2 rounded-md disabled:opacity-75"
               >
-                {busy ? "Sending..." : "Reset Password"}
+                {busy ? "Sending..." : "পাসওয়ার্ড রিসেট"}
               </button>
             </form>
           </>

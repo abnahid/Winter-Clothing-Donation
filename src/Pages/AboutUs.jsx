@@ -6,7 +6,7 @@ const AboutUs = () => {
       {/* Header Section */}
       <header className="bg-primary text-white py-10 rounded-lg">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl font-bold">About Us</h1>
+          <h1 className="text-4xl font-bold">আমাদের সম্পর্কে</h1>
           <p className="mt-2 text-lg">
             Learn more about our mission, vision, and the people behind our
             initiative.
@@ -19,16 +19,16 @@ const AboutUs = () => {
           <div className="md:w-1/2">
             <img
               src="https://i.ibb.co.com/hFKT7MM/pexels-photo-6995106.webp"
-              alt="Our Mission"
+              alt="আমাদের লক্ষ্য"
               className="object-cover object-center w-full  md:h-[500px]  rounded-2xl"
             />
           </div>
           <div className="md:w-1/2">
             <h2 className="text-3xl font-semibold text-gray-800 mb-4">
-              Our Mission
+              আমাদের লক্ষ্য
             </h2>
             <p className="text-gray-600">
-              At <span className="font-bold">Warm Hearts Initiative</span>, our
+              At <span className="font-bold">উষ্ণ হৃদয় উদ্যোগ</span>, our
               mission is to bring positive change to communities in need by
               running impactful donation campaigns and empowering individuals to
               contribute meaningfully.
@@ -46,7 +46,7 @@ const AboutUs = () => {
         <div className="container mx-auto px-4">
           <div className="text-center">
             <h2 className="text-3xl font-semibold text-gray-800 mb-4">
-              Our Vision
+              আমাদের স্বপ্ন
             </h2>
             <p className="text-gray-600 max-w-3xl mx-auto">
               To create a world where everyone has access to basic necessities
@@ -60,7 +60,7 @@ const AboutUs = () => {
 
       <section className="container mx-auto px-4 py-10">
         <h2 className="text-3xl font-semibold text-gray-800 text-center mb-8">
-          Meet Our Team
+          আমাদের দলের সঙ্গে পরিচিত হোন
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="text-center">
@@ -72,7 +72,7 @@ const AboutUs = () => {
             <h3 className="mt-4 text-lg font-semibold text-gray-800">
               Abdul Jabbar Al Nahid
             </h3>
-            <p className="text-gray-600">Founder & CEO</p>
+            <p className="text-gray-600">প্রতিষ্ঠাতা ও প্রধান নির্বাহী</p>
           </div>
           <div className="text-center">
             <img
@@ -83,7 +83,7 @@ const AboutUs = () => {
             <h3 className="mt-4 text-lg font-semibold text-gray-800">
               Hari Ravichandran
             </h3>
-            <p className="text-gray-600">Chief Operations Officer</p>
+            <p className="text-gray-600">প্রধান পরিচালন কর্মকর্তা</p>
           </div>
           <div className="text-center">
             <img
@@ -94,7 +94,7 @@ const AboutUs = () => {
             <h3 className="mt-4 text-lg font-semibold text-gray-800">
               Shamsh Hadi
             </h3>
-            <p className="text-gray-600">Marketing Head</p>
+            <p className="text-gray-600">বিপণন প্রধান</p>
           </div>
         </div>
       </section>
@@ -102,15 +102,15 @@ const AboutUs = () => {
       {/* Call to Action */}
       <section className="bg-primary text-white py-10 rounded-lg">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-semibold">Join Us Today</h2>
+          <h2 className="text-3xl font-semibold">আজই আমাদের সঙ্গে যুক্ত হোন</h2>
           <p className="mt-2 text-lg">
-            Become a part of the movement and make a difference.
+            এই উদ্যোগের অংশ হয়ে মানুষের জীবনে ইতিবাচক পরিবর্তন আনুন।
           </p>
           <Link
             to="/campaigns"
             className="btn mt-4 px-6 py-3 bg-white text-primary rounded-lg shadow hover:bg-gray-100"
           >
-            Get Involved
+            অংশ নিন
           </Link>
         </div>
       </section>

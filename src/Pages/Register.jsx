@@ -93,7 +93,7 @@ const Register = () => {
           {/* Sign-in Form */}
           <div className="p-8 rounded-2xl bg-white shadow">
             <h2 className="text-gray-800 text-center text-2xl font-bold">
-              Sign up
+              নিবন্ধন
             </h2>
             <div>
               <a
@@ -121,7 +121,7 @@ const Register = () => {
                   </svg>
                 </div>
                 <h1 className="px-4 py-3 w-5/6 text-center text-gray-600 font-bold">
-                  Sign up with Google
+                  গুগল দিয়ে নিবন্ধন
                 </h1>
               </a>
 
@@ -131,7 +131,7 @@ const Register = () => {
                   href="#"
                   className="text-xs text-center text-gray-500 uppercase"
                 >
-                  or Sign up with email
+                  অথবা ইমেইল দিয়ে নিবন্ধন
                 </a>
                 <span className="border-b w-1/5 lg:w-1/4"></span>
               </div>
@@ -140,7 +140,7 @@ const Register = () => {
               {/* Username Field */}
               <div>
                 <label className="text-gray-800 text-sm mb-2 block">
-                  User name
+                  নাম
                 </label>
                 <div className="relative flex items-center">
                   <input
@@ -178,7 +178,7 @@ const Register = () => {
 
               <div className="mb-4">
                 <label className="text-gray-800 text-sm mb-2 block">
-                  Photo URL
+                  ছবির লিংক
                 </label>
                 <input
                   type="url"
@@ -190,7 +190,7 @@ const Register = () => {
 
               <div className="mb-4">
                 <label className="text-gray-800 text-sm mb-2 block">
-                  Email
+                  ইমেইল
                 </label>
                 <input
                   type="email"
@@ -204,7 +204,7 @@ const Register = () => {
               {/* Password Field */}
               <div>
                 <label className="text-gray-800 text-sm mb-2 block">
-                  Password
+                  পাসওয়ার্ড
                 </label>
                 <div className="relative">
                   <input
@@ -263,7 +263,7 @@ const Register = () => {
                 >
                   Accept{" "}
                   <a href="#" className="text-neutral-500 font-semibold">
-                    Terms & Conditions
+                    শর্তাবলি
                   </a>
                 </label>
               </div>
@@ -274,7 +274,7 @@ const Register = () => {
                   type="submit"
                   className="w-full py-3 px-4 text-sm tracking-wide rounded-lg text-white bg-primary hover:bg-blue-700 focus:outline-none"
                 >
-                  Sign up
+                  নিবন্ধন
                 </button>
               </div>
 
@@ -285,7 +285,7 @@ const Register = () => {
                   to="/login"
                   className="text-primary hover:underline ml-1 whitespace-nowrap font-semibold"
                 >
-                  Login
+                  লগইন
                 </Link>
               </p>
             </form>

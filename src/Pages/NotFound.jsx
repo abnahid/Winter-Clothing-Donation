@@ -14,7 +14,7 @@ const NotFound = () => {
               404
             </h1>
             <p className="mb-4 text-3xl tracking-tight font-bold text-white md:text-4xl ">
-              Sorry, an unexpected error has occurred.
+              দুঃখিত, একটি অপ্রত্যাশিত সমস্যা হয়েছে।
             </p>
             <p className="mb-4 text-lg font-light text-gray-300">
               <i>{error.statusText || error.message}</i>
@@ -23,7 +23,7 @@ const NotFound = () => {
               to={`/`}
               className="inline-flex text-white bg-blue-300 hover:bg-blue-500 focus:ring-4 focus:outline-none focus:ring-primary font-medium rounded-lg text-sm px-5 py-2.5 text-center my-4"
             >
-              Back to Homepage
+              মূল পাতায় ফিরুন
             </Link>
           </div>
         </div>

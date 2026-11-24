@@ -9,35 +9,35 @@ const BannerSlider = () => {
     {
       image:
         "https://i.ibb.co/Wy1D8Np/DALL-E-2024-11-19-04-43-42-A-volunteer-warmly-wrapping-a-child-in-a-cozy-blanket-during-winter-surro.webp",
-      heading: "Warmth for All",
+      heading: "সবার জন্য উষ্ণতা",
       description:
-        "Families receiving winter donations, spreading warmth and hope.",
-      buttonLabel: "Donate Now",
+        "শীতবস্ত্র পেয়ে পরিবারগুলোতে ছড়িয়ে পড়ছে উষ্ণতা ও আশার আলো।",
+      buttonLabel: "এখনই অনুদান দিন",
       buttonLink: "/campaigns",
     },
     {
       image:
         "https://i.ibb.co.com/KjC0cVX/DALL-E-2024-11-19-05-13-31-A-heartwarming-scene-of-volunteers-distributing-warm-winter-clothing-to-p.webp",
-      heading: "Together, We Can Make a Difference",
+      heading: "একসঙ্গে আমরা পরিবর্তন আনতে পারি",
       description:
-        "Volunteers distributing clothing to those in need this winter.",
-      buttonLabel: "View Campaigns",
+        "এই শীতে প্রয়োজনমতো মানুষের হাতে শীতবস্ত্র তুলে দিচ্ছেন স্বেচ্ছাসেবীরা।",
+      buttonLabel: "কার্যক্রম দেখুন",
       buttonLink: "/campaigns",
     },
     {
       image:
         "https://i.ibb.co.com/L5mK6Vs/DALL-E-2024-11-19-05-15-26-A-touching-scene-of-a-child-smiling-joyfully-as-they-receive-warm-winter.webp",
-      heading: "Every Act of Kindness Counts",
-      description: "A child smiling as they receive warm clothing.",
-      buttonLabel: "Get Involved",
+      heading: "প্রতিটি সদয় উদ্যোগই মূল্যবান",
+      description: "উষ্ণ পোশাক পেয়ে হাসছে একটি শিশু।",
+      buttonLabel: "অংশ নিন",
       buttonLink: "/campaigns",
     },
     {
       image:
         "https://i.ibb.co.com/cwxPF9M/DALL-E-2024-11-19-05-17-07-A-highly-realistic-and-heartwarming-scene-of-people-from-diverse-backgrou.webp",
-      heading: "Join Our Mission",
-      description: "Together, we’re creating a brighter, warmer future.",
-      buttonLabel: "Support Us",
+      heading: "আমাদের উদ্যোগে যুক্ত হোন",
+      description: "একসঙ্গে আমরা গড়ছি উজ্জ্বল ও উষ্ণ ভবিষ্যৎ।",
+      buttonLabel: "সহায়তা করুন",
       buttonLink: "how-to-help",
     },
   ];

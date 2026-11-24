@@ -7,7 +7,7 @@ const Contact = () => {
       {/* Header Section */}
       <header className="bg-blue-500 text-white py-10 rounded-lg">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl font-bold">Contact Us</h1>
+          <h1 className="text-4xl font-bold">যোগাযোগ</h1>
           <p className="mt-2 text-lg">
             We&apos;d love to hear from you! Reach out to us with any questions
             or feedback.
@@ -21,7 +21,7 @@ const Contact = () => {
           {/* Contact Form */}
           <div>
             <h2 className="text-3xl font-semibold text-gray-800 mb-4">
-              Get in Touch
+              যোগাযোগ করুন
             </h2>
             <p className="text-gray-600 mb-6">
               Fill out the form below, and we&apos;ll get back to you as soon as
@@ -33,12 +33,12 @@ const Contact = () => {
                   htmlFor="name"
                   className="block text-gray-700 font-medium mb-1"
                 >
-                  Full Name
+                  পূর্ণ নাম
                 </label>
                 <input
                   type="text"
                   id="name"
-                  placeholder="Your Name"
+                  placeholder="আপনার নাম"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-primary"
                   required
                 />
@@ -48,12 +48,12 @@ const Contact = () => {
                   htmlFor="email"
                   className="block text-gray-700 font-medium mb-1"
                 >
-                  Email Address
+                  ইমেইল ঠিকানা
                 </label>
                 <input
                   type="email"
                   id="email"
-                  placeholder="Your Email"
+                  placeholder="আপনার ইমেইল"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-primary"
                   required
                 />
@@ -63,12 +63,12 @@ const Contact = () => {
                   htmlFor="message"
                   className="block text-gray-700 font-medium mb-1"
                 >
-                  Message
+                  বার্তা
                 </label>
                 <textarea
                   id="message"
                   rows="5"
-                  placeholder="Your Message"
+                  placeholder="আপনার বার্তা"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg  outline-primary"
                   required
                 ></textarea>
@@ -77,7 +77,7 @@ const Contact = () => {
                 type="submit"
                 className="w-full bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-400 transition"
               >
-                Send Message
+                বার্তা পাঠান
               </button>
             </form>
           </div>
@@ -85,7 +85,7 @@ const Contact = () => {
           {/* Contact Information */}
           <div>
             <h2 className="text-3xl font-semibold text-gray-800 mb-4">
-              Contact Information
+              যোগাযোগের তথ্য
             </h2>
             <p className="text-gray-600 mb-6">
               You can also reach us via email or phone. Our team is here to
@@ -116,15 +116,15 @@ const Contact = () => {
       {/* Call to Action */}
       <section className="bg-primary text-white py-10 rounded-lg">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-semibold">Join Us Today</h2>
+          <h2 className="text-3xl font-semibold">আজই আমাদের সঙ্গে যুক্ত হোন</h2>
           <p className="mt-2 text-lg">
-            Become a part of the movement and make a difference.
+            এই উদ্যোগের অংশ হয়ে মানুষের জীবনে ইতিবাচক পরিবর্তন আনুন।
           </p>
           <Link
             to="/campaigns"
             className="btn mt-4 px-6 py-3 bg-white text-primary rounded-lg shadow hover:bg-gray-100"
           >
-            Get Involved
+            অংশ নিন
           </Link>
         </div>
       </section>

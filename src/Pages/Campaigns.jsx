@@ -6,14 +6,14 @@ import Campaign from "./Campaign";
 const Campaigns = () => {
   const campaigns = useLoaderData();
   const [filteredCampaigns, setFilteredCampaigns] = useState([]);
-  const [selectedDivision, setSelectedDivision] = useState("All");
+  const [selectedDivision, setSelectedDivision] = useState("সব");
 
   useEffect(() => {
     setFilteredCampaigns(campaigns);
   }, [campaigns]);
 
   const handleDivisionClick = (division) => {
-    if (division === "All") {
+    if (division === "সব") {
       setFilteredCampaigns(campaigns);
     } else {
       const filtered = campaigns.filter(
@@ -25,7 +25,7 @@ const Campaigns = () => {
   };
 
   const divisions = [
-    "All",
+    "সব",
     ...new Set(campaigns.map((campaign) => campaign.division)),
   ];
 
@@ -36,7 +36,7 @@ const Campaigns = () => {
       </Helmet>
       <div className="container mx-auto py-8">
         <div className="pb-8">
-          <h1 className="text-3xl font-bold text-center">Donation Campaigns</h1>
+          <h1 className="text-3xl font-bold text-center">অনুদান কার্যক্রম</h1>
           <p className="text-center text-gray-600 mt-4">
             Browse our active campaigns and help those in need by donating
             winter essentials.
