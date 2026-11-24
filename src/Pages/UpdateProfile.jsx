@@ -2,53 +2,27 @@ import { useContext, useState } from "react";
 import { Helmet } from "react-helmet";
 import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
-import { AuthContext } from "../context/AuthProvider";
+import { AuthContext, authErrorMessage } from "../context/AuthProvider";
 
 const UpdateProfile = () => {
-  const { updateUserProfile, user, auth, setUser } = useContext(AuthContext);
+  const { updateUserProfile, user } = useContext(AuthContext);
   const [btnLoading, setBtnLoading] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-
-  const imgbbApiKey = import.meta.env.VITE_IMGBB_API_KEY;
 
   const handleUpdate = async (e) => {
     e.preventDefault();
     setBtnLoading(true);
 
     const name = e.target.name.value;
-    const photo = e.target.profilePhoto.files[0];
+    const photoURL = e.target.photoUrl.value.trim();
 
     try {
-      let photoURL = user?.photoURL;
-
-      if (photo) {
-        const formData = new FormData();
-        formData.append("image", photo);
-
-        const response = await fetch(
-          `https://api.imgbb.com/1/upload?key=${imgbbApiKey}`,
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to upload image to ImgBB");
-        }
-
-        const data = await response.json();
-        photoURL = data.data.url;
-      }
-
       await updateUserProfile({ displayName: name, photoURL });
-      setUser({ ...auth.currentUser, displayName: name, photoURL });
-      toast.success("Profile updated successfully!");
-
+      toast.success("প্রোফাইল সফলভাবে হালনাগাদ করা হয়েছে!");
       navigate(location.state?.from || "/");
     } catch (error) {
-      toast.error(error.message || "Failed to update profile");
+      toast.error(authErrorMessage(error) || "প্রোফাইল হালনাগাদ করতে ব্যর্থ হয়েছে");
     } finally {
       setBtnLoading(false);
     }
@@ -57,11 +31,11 @@ const UpdateProfile = () => {
   return (
     <div className="py-11">
       <Helmet>
-        <title>Update Profile - Warm Hearts</title>
+        <title>প্রোফাইল হালনাগাদ - আল আহসান ফাউন্ডেশন</title>
       </Helmet>
       <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
         <h2 className="text-2xl font-semibold mb-4 text-center">
-          Update Profile
+          প্রোফাইল হালনাগাদ
         </h2>
         <form onSubmit={handleUpdate}>
           <div className="mb-4">
@@ -69,7 +43,7 @@ const UpdateProfile = () => {
               htmlFor="name"
               className="block text-sm font-medium text-gray-700"
             >
-              Name:
+              নাম:
             </label>
             <input
               type="text"
@@ -83,17 +57,18 @@ const UpdateProfile = () => {
 
           <div className="mb-4">
             <label
-              htmlFor="profilePhoto"
+              htmlFor="photoUrl"
               className="block text-sm font-medium text-gray-700"
             >
-              Profile Photo (optional):
+              ছবির লিংক (ঐচ্ছিক):
             </label>
             <input
-              type="file"
-              id="profilePhoto"
-              name="profilePhoto"
-              accept="image/*"
-              className="file-input file-input-bordered file-input-sm w-full mt-1"
+              type="url"
+              id="photoUrl"
+              name="photoUrl"
+              defaultValue={user?.photoURL || ""}
+              placeholder="ছবির ঠিকানা"
+              className="input input-bordered w-full mt-1"
             />
           </div>
 
@@ -107,10 +82,10 @@ const UpdateProfile = () => {
             {btnLoading ? (
               <div className="flex justify-center items-center gap-2">
                 <span className="loading loading-spinner loading-md"></span>
-                <p>Updating...</p>
+                <p>হালনাগাদ হচ্ছে...</p>
               </div>
             ) : (
-              "Update Profile"
+              "প্রোফাইল হালনাগাদ"
             )}
           </button>
         </form>

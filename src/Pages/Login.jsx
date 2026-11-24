@@ -1,23 +1,26 @@
-/* eslint-disable no-unused-vars */
 import { useContext, useState } from "react";
 import { Helmet } from "react-helmet";
 import toast from "react-hot-toast";
 import { FaEyeSlash } from "react-icons/fa";
 import { IoEyeSharp } from "react-icons/io5";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { AuthContext } from "../context/AuthProvider";
+import { AuthContext, authErrorMessage } from "../context/AuthProvider";
+import { useBranding } from "../context/BrandingContext";
 
 const Login = () => {
-  const { loginUser, setUser, googleLogin } = useContext(AuthContext);
+  const { loginUser, googleLogin } = useContext(AuthContext);
+  const { settings } = useBranding();
   const [type, setType] = useState("password");
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
 
   const handelGoogle = () => {
-    googleLogin().then((result) => {
-      navigate(location?.state?.from || "/");
-    });
+    try {
+      googleLogin();
+    } catch (error) {
+      toast.error(authErrorMessage(error));
+    }
   };
 
   const handelSubmit = (e) => {
@@ -27,17 +30,13 @@ const Login = () => {
     const password = form.get("password");
 
     loginUser(email, password)
-      .then((userCredential) => {
-        // Signed in
-        const user = userCredential.user;
-        toast.success(`User Login successfully!: ${user.email}`);
+      .then(() => {
+        toast.success("সফলভাবে লগইন হয়েছে।");
         e.target.reset();
-        setUser(user);
         navigate(location?.state?.from || "/");
       })
       .catch((error) => {
-        const errorMessage = error.message;
-        toast.error(`Error: ${errorMessage}`);
+        toast.error(authErrorMessage(error));
       });
   };
 
@@ -48,14 +47,14 @@ const Login = () => {
   return (
     <div className="bg-gray-50">
       <Helmet>
-        <title>Sign in - Warm Hearts</title>
+        <title>লগইন - {settings.siteName}</title>
       </Helmet>
       <div className="min-h-screen flex flex-col items-center justify-center py-6 px-4">
         <div className="max-w-md w-full">
           {/* Sign-in Form */}
           <div className="p-8 rounded-2xl bg-white shadow">
             <h2 className="text-gray-800 text-center text-2xl font-bold">
-              Sign in
+              লগইন
             </h2>
             <div>
               <a
@@ -83,7 +82,7 @@ const Login = () => {
                   </svg>
                 </div>
                 <h1 className="px-4 py-3 w-5/6 text-center text-gray-600 font-bold">
-                  Sign in with Google
+                  গুগল দিয়ে লগইন
                 </h1>
               </a>
 
@@ -93,7 +92,7 @@ const Login = () => {
                   href="#"
                   className="text-xs text-center text-gray-500 uppercase"
                 >
-                  or login with email
+                  অথবা ইমেইল দিয়ে লগইন
                 </a>
                 <span className="border-b w-1/5 lg:w-1/4"></span>
               </div>
@@ -102,15 +101,17 @@ const Login = () => {
               {/* Username Field */}
               <div>
                 <label className="text-gray-800 text-sm mb-2 block">
-                  Email
+                  ইমেইল
                 </label>
                 <div className="relative flex items-center">
                   <input
                     type="email"
                     name="email"
                     required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="w-full text-gray-800 text-sm border border-gray-300 px-4 py-3 rounded-md outline-primary"
-                    placeholder="Enter user name"
+                    placeholder="আপনার ইমেইল লিখুন"
                   />
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -136,14 +137,14 @@ const Login = () => {
               {/* Password Field */}
               <div>
                 <label className="text-gray-800 text-sm mb-2 block">
-                  Password
+                  পাসওয়ার্ড
                 </label>
                 <div className="relative">
                   <input
                     type={type}
                     name="password"
                     className="w-full pr-10 text-gray-800 text-sm border border-gray-300 px-4 py-3 rounded-md outline-primary"
-                    placeholder="Enter your password"
+                    placeholder="আপনার পাসওয়ার্ড লিখুন"
                     required
                   />
                   <span
@@ -170,7 +171,7 @@ const Login = () => {
                     htmlFor="remember-me"
                     className="ml-3 block text-sm text-gray-800"
                   >
-                    Remember me
+                    আমাকে মনে রাখুন
                   </label>
                 </div>
                 <div className="text-sm">
@@ -179,7 +180,7 @@ const Login = () => {
                     onClick={handleForgotPassword}
                     className="text-primary hover:underline font-semibold"
                   >
-                    Forgot your password?
+                    পাসওয়ার্ড ভুলে গেছেন?
                   </button>
                 </div>
               </div>
@@ -190,18 +191,18 @@ const Login = () => {
                   type="submit"
                   className="w-full py-3 px-4 text-sm tracking-wide rounded-lg text-white bg-primary hover:bg-blue-700 focus:outline-none"
                 >
-                  Sign in
+                  লগইন
                 </button>
               </div>
 
               {/* Register Link */}
               <p className="text-gray-800 text-sm !mt-8 text-center">
-                Don&apos;t have an account
+                অ্যাকাউন্ট নেই?
                 <Link
                   to="/register"
                   className="text-primary hover:underline ml-1 whitespace-nowrap font-semibold"
                 >
-                  Register here
+                  এখানে নিবন্ধন করুন
                 </Link>
               </p>
             </form>

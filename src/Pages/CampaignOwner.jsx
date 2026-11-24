@@ -8,19 +8,19 @@ const CampaignOwner = () => {
   const owners = [
     {
       id: 1,
-      name: "Abdul Jabbar Al Nahid",
+      name: "আব্দুল জব্বার আল নাহিদ",
       email: "nanayeemgamer@gmail.com",
       profile_picture: "https://i.ibb.co.com/XZdP5hF/2023-05-15-1.jpg",
-      bio: "Dedicated to organizing impactful donation campaigns for community welfare.",
+      bio: "সমাজকল্যাণে কার্যকর অনুদান কার্যক্রম পরিচালনায় নিবেদিত।",
       volunteer_history: [
         {
-          campaign_name: "Winter Relief in Dhaka",
-          role: "Organizer",
+          campaign_name: "ঢাকায় শীতকালীন সহায়তা",
+          role: "আয়োজক",
           date: "2023-01-10",
         },
         {
-          campaign_name: "Sylhet Urban Shelter Drive",
-          role: "Volunteer",
+          campaign_name: "সিলেট নগর আশ্রয় সহায়তা",
+          role: "স্বেচ্ছাসেবক",
           date: "2022-12-15",
         },
       ],
@@ -36,7 +36,7 @@ const CampaignOwner = () => {
         <div className="flex flex-col items-center">
           <img
             src={owner.profile_picture}
-            alt={`${owner.name} Profile`}
+            alt={`${owner.name}-এর প্রোফাইল ছবি`}
             className="w-24 h-24 rounded-full mb-4"
           />
 
@@ -77,12 +77,12 @@ const CampaignOwner = () => {
           </div>
 
           <div className="w-full text-left space-x-2">
-            <h3 className="text-lg font-semibold mb-2">Volunteer History:</h3>
+            <h3 className="text-lg font-semibold mb-2">স্বেচ্ছাসেবার ইতিহাস:</h3>
             <ul className="list-disc pl-5 text-gray-700 text-sm">
               {owner.volunteer_history.map((history, index) => (
                 <li key={index}>
                   <strong>{history.campaign_name}</strong> - <br />{" "}
-                  {history.role} on {history.date}
+                  {history.role} · {new Date(history.date).toLocaleDateString("bn-BD")}
                 </li>
               ))}
             </ul>
@@ -90,7 +90,7 @@ const CampaignOwner = () => {
 
           <div className="mt-6">
             <p className="text-gray-600">
-              <strong>Total Campaigns Participated:</strong>{" "}
+              <strong>মোট অংশগ্রহণ করা কার্যক্রম:</strong>{" "}
               {owner.total_volunteer_count}
             </p>
           </div>

@@ -2,8 +2,10 @@ import { useContext, useState } from "react";
 
 import { Link, NavLink } from "react-router-dom";
 import { AuthContext } from "../context/AuthProvider";
+import { useBranding } from "../context/BrandingContext";
 
 const Navbar = () => {
+  const { settings } = useBranding();
   const { user, signOutUser } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState("register");
   const activeStyle = "font-semibold text-primary ";
@@ -15,7 +17,7 @@ const Navbar = () => {
           to="/"
           className={({ isActive }) => (isActive ? activeStyle : "")}
         >
-          Home
+          হোম
         </NavLink>
       </li>
       <li>
@@ -23,15 +25,32 @@ const Navbar = () => {
           to="/campaigns"
           className={({ isActive }) => (isActive ? activeStyle : "")}
         >
-          Donation Campaigns
+          অনুদান কার্যক্রম
         </NavLink>
       </li>
+      <li><NavLink to="/donate" className={({ isActive }) => (isActive ? activeStyle : "")}>অর্থ অনুদান</NavLink></li>
       <li>
         <NavLink
           to="/how-to-help"
           className={({ isActive }) => (isActive ? activeStyle : "")}
         >
-          How to Help
+          কীভাবে সহায়তা করবেন
+        </NavLink>
+      </li>
+      <li>
+        <NavLink
+          to="/about"
+          className={({ isActive }) => (isActive ? activeStyle : "")}
+        >
+          আমাদের সম্পর্কে
+        </NavLink>
+      </li>
+      <li>
+        <NavLink
+          to="/contact"
+          className={({ isActive }) => (isActive ? activeStyle : "")}
+        >
+          যোগাযোগ
         </NavLink>
       </li>
       {user?.email && (
@@ -40,7 +59,7 @@ const Navbar = () => {
             to="/dashboard"
             className={({ isActive }) => (isActive ? activeStyle : "")}
           >
-            Dashboard
+            ড্যাশবোর্ড
           </NavLink>
         </li>
       )}
@@ -76,9 +95,9 @@ const Navbar = () => {
             {links}
           </ul>
         </div>
-        <Link className="px-4 normal-case text-2xl font-semibold gap-1 md:block hidden">
-          <h1>Warm Hearts</h1>
-          <p className="text-sm hidden md:block ">Initiative</p>
+        <Link to="/" className="flex items-center gap-3 px-4 text-xl font-bold">
+          <img src={settings.logo} alt={settings.siteName} className="h-10 w-10 rounded-lg object-contain" />
+          <span className="hidden md:inline">{settings.siteName}</span>
         </Link>
       </div>
       <div className="navbar-center hidden lg:flex">
@@ -97,7 +116,7 @@ const Navbar = () => {
               className="btn btn-ghost btn-circle avatar"
             >
               <div className="w-10 rounded-full">
-                <img alt="User Avatar" src={user?.photoURL} />
+                <img alt="ব্যবহারকারীর ছবি" src={user?.photoURL} />
               </div>
             </div>
 
@@ -107,16 +126,15 @@ const Navbar = () => {
             >
               <li>
                 <Link to="/profile" className="justify-between">
-                  Profile
-                  <span className="badge bg-green-200 text-green-800">New</span>
+                  প্রোফাইল
+                  <span className="badge bg-green-200 text-green-800">নতুন</span>
                 </Link>
               </li>
-              <li>
-                <Link>Settings</Link>
-              </li>
+              {user?.email?.toLowerCase() === "alahsanfoundationbangladesh@gmail.com" && <li><Link to="/admin">অ্যাডমিন প্যানেল</Link></li>}
+              <li><Link to="/dashboard">আমার ড্যাশবোর্ড</Link></li>
               <li>
                 <button onClick={signOutUser} className="text-red-600">
-                  Logout
+                  লগআউট
                 </button>
               </li>
             </ul>
@@ -132,7 +150,7 @@ const Navbar = () => {
               } px-6 py-2 rounded-lg text-sm font-normal `}
               onClick={() => setActiveTab("login")}
             >
-              Login
+              লগইন
             </Link>
             <Link
               to="/register"
@@ -143,7 +161,7 @@ const Navbar = () => {
               } px-6 py-2 rounded-lg text-sm font-normal`}
               onClick={() => setActiveTab("register")}
             >
-              Sign up
+              নিবন্ধন
             </Link>
           </div>
         )}

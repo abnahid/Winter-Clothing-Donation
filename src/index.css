@@ -19,9 +19,14 @@
       background-position: 0% 50%;
     }
   }
-  
+
   .animate-gradient {
     background-size: 200% 200%;
     animation: gradient-animation 3s ease infinite;
   }
-    
+
+:root { --site-primary: #4A90E2; }
+.bg-primary { background-color: var(--site-primary) !important; }
+.text-primary { color: var(--site-primary) !important; }
+.border-primary { border-color: var(--site-primary) !important; }
+.outline-primary { outline-color: var(--site-primary) !important; }

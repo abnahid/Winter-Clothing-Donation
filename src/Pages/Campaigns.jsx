@@ -1,45 +1,41 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Helmet } from "react-helmet";
 import { useLoaderData } from "react-router-dom";
 import Campaign from "./Campaign";
+import { useBranding } from "../context/BrandingContext";
 
 const Campaigns = () => {
-  const campaigns = useLoaderData();
+  const { settings, campaigns: sharedCampaigns } = useBranding();
+  const loaderData = useLoaderData();
+  const campaigns = useMemo(
+    () => sharedCampaigns !== null ? sharedCampaigns : (loaderData || []),
+    [sharedCampaigns, loaderData]
+  );
   const [filteredCampaigns, setFilteredCampaigns] = useState([]);
-  const [selectedDivision, setSelectedDivision] = useState("All");
+  const [selectedDivision, setSelectedDivision] = useState("সব");
 
   useEffect(() => {
     setFilteredCampaigns(campaigns);
   }, [campaigns]);
 
   const handleDivisionClick = (division) => {
-    if (division === "All") {
-      setFilteredCampaigns(campaigns);
-    } else {
-      const filtered = campaigns.filter(
-        (campaign) => campaign.division === division
-      );
-      setFilteredCampaigns(filtered);
-    }
+    if (division === "সব") setFilteredCampaigns(campaigns);
+    else setFilteredCampaigns(campaigns.filter((campaign) => campaign.division === division));
     setSelectedDivision(division);
   };
 
-  const divisions = [
-    "All",
-    ...new Set(campaigns.map((campaign) => campaign.division)),
-  ];
+  const divisions = ["সব", ...new Set(campaigns.map((campaign) => campaign.division).filter(Boolean))];
 
   return (
     <div className="max-w-6xl mx-auto mt-3 mb-12">
       <Helmet>
-        <title>Donation Campaigns - Warm Hearts</title>
+        <title>অনুদান কার্যক্রমসমূহ - {settings.siteName}</title>
       </Helmet>
       <div className="container mx-auto py-8">
         <div className="pb-8">
-          <h1 className="text-3xl font-bold text-center">Donation Campaigns</h1>
+          <h1 className="text-3xl font-bold text-center">অনুদান কার্যক্রম</h1>
           <p className="text-center text-gray-600 mt-4">
-            Browse our active campaigns and help those in need by donating
-            winter essentials.
+            চলমান কার্যক্রমগুলো দেখুন এবং প্রয়োজনীয় শীতবস্ত্র ও অর্থ অনুদানের মাধ্যমে পাশে দাঁড়ান।
           </p>
         </div>
 
@@ -48,9 +44,7 @@ const Campaigns = () => {
             <button
               onClick={() => handleDivisionClick(division)}
               className={`btn bg-base-100 border-none hover:bg-blue-400 hover:text-white ${
-                selectedDivision === division
-                  ? "bg-primary text-white"
-                  : "bg-gray-200"
+                selectedDivision === division ? "bg-primary text-white" : "bg-gray-200"
               }`}
               key={division}
             >
@@ -59,9 +53,9 @@ const Campaigns = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ">
-          {filteredCampaigns.map((campaign) => (
-            <Campaign campaign={campaign} key={campaign.id} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredCampaigns.map((campaign, index) => (
+            <Campaign campaign={campaign} key={campaign.id || index} index={index} />
           ))}
         </div>
       </div>

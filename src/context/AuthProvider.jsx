@@ -1,57 +1,135 @@
 /* eslint-disable react/prop-types */
 import {
-  createUserWithEmailAndPassword,
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  signOut,
-  updateProfile,
-} from "firebase/auth";
+  AuthError,
+  getUser,
+  handleAuthCallback,
+  login,
+  logout,
+  MissingIdentityError,
+  oauthLogin,
+  onAuthChange,
+  requestPasswordRecovery,
+  signup,
+  updateUser,
+} from "@netlify/identity";
 import { createContext, useEffect, useState } from "react";
-import { auth } from "../services/firebaseConfig";
 
-// Create the AuthContext
 // eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext(null);
+
+// Normalize a Netlify Identity user into the shape the UI expects
+// (displayName / photoURL / email), so pages don't need to know the provider.
+const toAppUser = (identityUser) => {
+  if (!identityUser) return null;
+  const meta = identityUser.userMetadata || {};
+  return {
+    id: identityUser.id,
+    email: identityUser.email,
+    displayName: identityUser.name || meta.full_name || "",
+    photoURL: identityUser.pictureUrl || meta.avatar_url || "",
+  };
+};
+
+// Turn library errors into readable messages.
+// eslint-disable-next-line react-refresh/only-export-components
+export const authErrorMessage = (error) => {
+  if (error instanceof MissingIdentityError) {
+    return "লগইন সেবা এখন পাওয়া যাচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।";
+  }
+  if (error instanceof AuthError) {
+    switch (error.status) {
+      case 401:
+        return "ইমেইল অথবা পাসওয়ার্ড সঠিক নয়।";
+      case 403:
+        return "এই ওয়েবসাইটে নতুন অ্যাকাউন্ট খোলা যাচ্ছে না।";
+      case 422:
+        return "ইমেইল বা পাসওয়ার্ডের তথ্য সঠিক নয়।";
+      default:
+        return error.message;
+    }
+  }
+  return "একটি সমস্যা হয়েছে। আবার চেষ্টা করুন।";
+};
+
+// Guard so the URL-hash callback is only processed once (StrictMode runs effects twice).
+let callbackPromise = null;
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const googleProvider = new GoogleAuthProvider();
+  const [pendingRecovery, setPendingRecovery] = useState(false);
 
-  const createUser = (email, password) => {
-    setLoading(true);
-    return createUserWithEmailAndPassword(auth, email, password);
+  const createUser = async (email, password, name, photoURL) => {
+    const data = { full_name: name };
+    if (photoURL) data.avatar_url = photoURL;
+    const newUser = await signup(email, password, data);
+    const confirmed = Boolean(newUser.confirmedAt);
+    if (confirmed) setUser(toAppUser(newUser));
+    return { user: toAppUser(newUser), confirmed };
   };
 
-  const loginUser = (email, password) => {
-    setLoading(true);
-    return signInWithEmailAndPassword(auth, email, password);
+  const loginUser = async (email, password) => {
+    const loggedIn = await login(email, password);
+    const appUser = toAppUser(loggedIn);
+    setUser(appUser);
+    return { user: appUser };
   };
 
-  const googleLogin = () => {
-    setLoading(true);
-    return signInWithPopup(auth, googleProvider);
+  // Redirects to Google and back; the return trip is handled by handleAuthCallback.
+  const googleLogin = () => oauthLogin("google");
+
+  const signOutUser = async () => {
+    await logout();
+    setUser(null);
   };
 
-  const signOutUser = () => {
-    setLoading(true);
-    return signOut(auth);
+  const updateUserProfile = async ({ displayName, photoURL }) => {
+    const data = {};
+    if (displayName !== undefined) data.full_name = displayName;
+    if (photoURL !== undefined) data.avatar_url = photoURL;
+    const updated = await updateUser({ data });
+    const appUser = toAppUser(updated);
+    setUser(appUser);
+    return appUser;
   };
 
-  const updateUserProfile = (updatedData) => {
-    return updateProfile(auth.currentUser, updatedData);
+  const resetPassword = (email) => requestPasswordRecovery(email);
+
+  const setNewPassword = async (password) => {
+    await updateUser({ password });
+    setPendingRecovery(false);
   };
 
-  // Observer
   useEffect(() => {
-    const unSubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
+    let active = true;
+
+    const init = async () => {
+      try {
+        if (!callbackPromise) callbackPromise = handleAuthCallback();
+        const result = await callbackPromise;
+        if (active && result?.type === "recovery") setPendingRecovery(true);
+      } catch (error) {
+        console.error("Auth callback failed:", authErrorMessage(error));
+      }
+      const current = await getUser();
+      if (active) {
+        setUser(toAppUser(current));
+        setLoading(false);
+      }
+    };
+    init();
+
+    const unsubscribe = onAuthChange((event, changedUser) => {
+      if (!active) return;
+      if (event === "logout") setUser(null);
+      else if (changedUser) setUser(toAppUser(changedUser));
+      if (event === "recovery") setPendingRecovery(true);
     });
 
-    return () => unSubscribe();
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   }, []);
 
   const authInfo = {
@@ -60,10 +138,12 @@ const AuthProvider = ({ children }) => {
     signOutUser,
     loading,
     user,
-    auth,
     setUser,
     updateUserProfile,
     googleLogin,
+    resetPassword,
+    setNewPassword,
+    pendingRecovery,
   };
 
   return (

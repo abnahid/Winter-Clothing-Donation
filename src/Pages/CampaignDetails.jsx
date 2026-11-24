@@ -1,11 +1,14 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import toast from "react-hot-toast";
 import { useLoaderData } from "react-router-dom";
 import CampaignOwner from "./CampaignOwner";
+import { useBranding } from "../context/BrandingContext";
 
 const CampaignDetails = () => {
   const campaign = useLoaderData();
+  const { settings } = useBranding();
 
   const [form, setForm] = useState({
     quantity: "",
@@ -21,7 +24,7 @@ const CampaignDetails = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    toast.success("Thank you! We will reach your destination soon.");
+    toast.success("ধন্যবাদ! আমরা শিগগিরই আপনার ঠিকানায় যোগাযোগ করব।");
     setForm({
       quantity: "",
       itemType: "",
@@ -33,7 +36,7 @@ const CampaignDetails = () => {
   return (
     <div className="w-11/12 mx-auto pt-5 block lg:grid lg:grid-cols-12 gap-5">
       <Helmet>
-        <title>{campaign.title} - Warm Hearts</title>
+        <title>{campaign.title} - {settings.siteName}</title>
       </Helmet>
       <div className="col-span-8">
         <h1 className="text-3xl font-bold">{campaign.title}</h1>
@@ -47,28 +50,30 @@ const CampaignDetails = () => {
           {campaign.secondary_description}
         </p>
         <p className="mt-4 text-gray-500">
-          <strong>Division:</strong> {campaign.division}
+          <strong>বিভাগ:</strong> {campaign.division}
         </p>
         <p className="mt-2 text-gray-500">
-          <strong>Status:</strong> {campaign.status}
+          <strong>অবস্থা:</strong> {campaign.status === "Active" ? "চলমান" : campaign.status}
         </p>
         <p className="mt-2 text-gray-500">
-          <strong>Contact Info:</strong> {campaign.contactInfo}
+          <strong>যোগাযোগের তথ্য:</strong> {campaign.contactInfo}
         </p>
+
+        <Link to={`/donate?campaignId=${campaign.id}`} className="mt-6 inline-flex rounded-xl bg-primary px-6 py-3 font-semibold text-white">এই কার্যক্রমে অর্থ অনুদান দিন</Link>
 
         {/* Donation Form */}
         <form
           onSubmit={handleSubmit}
           className="bg-white rounded-lg px-8 pt-6 pb-8 mt-8"
         >
-          <h2 className="text-2xl font-bold mb-4">Donate Items</h2>
+          <h2 className="text-2xl font-bold mb-4">সামগ্রী অনুদান দিন</h2>
 
           <div className="mb-4">
             <label
               htmlFor="quantity"
               className="block text-gray-700 text-sm font-bold mb-2"
             >
-              Quantity of Items
+              সামগ্রীর পরিমাণ
             </label>
             <input
               type="text"
@@ -76,7 +81,7 @@ const CampaignDetails = () => {
               name="quantity"
               value={form.quantity}
               onChange={handleChange}
-              placeholder="e.g., 2 jackets, 3 blankets"
+              placeholder="যেমন: ২টি জ্যাকেট, ৩টি কম্বল"
               className="outline-blue-600 appearance-none border rounded w-full py-2 px-3 text-gray-700"
               required
             />
@@ -88,7 +93,7 @@ const CampaignDetails = () => {
               htmlFor="itemType"
               className="block text-gray-700 text-sm font-bold mb-2"
             >
-              Item Type
+              সামগ্রীর ধরন
             </label>
             <select
               id="itemType"
@@ -98,10 +103,10 @@ const CampaignDetails = () => {
               className="outline-blue-600 appearance-none border rounded w-full py-2 px-3 text-gray-700"
               required
             >
-              <option value="">Select Item Type</option>
-              <option value="blanket">Blanket</option>
-              <option value="jacket">Jacket</option>
-              <option value="sweater">Sweater</option>
+              <option value="">সামগ্রীর ধরন বেছে নিন</option>
+              <option value="blanket">কম্বল</option>
+              <option value="jacket">জ্যাকেট</option>
+              <option value="sweater">সোয়েটার</option>
             </select>
           </div>
 
@@ -111,7 +116,7 @@ const CampaignDetails = () => {
               htmlFor="pickupLocation"
               className="block text-gray-700 text-sm font-bold mb-2"
             >
-              Pickup Location
+              সংগ্রহের ঠিকানা
             </label>
             <input
               type="text"
@@ -119,7 +124,7 @@ const CampaignDetails = () => {
               name="pickupLocation"
               value={form.pickupLocation}
               onChange={handleChange}
-              placeholder="e.g., House 12, Road 5, Dhanmondi, Dhaka"
+              placeholder="যেমন: বাড়ি ১২, সড়ক ৫, ধানমন্ডি, ঢাকা"
               className="outline-blue-600 appearance-none border rounded w-full py-2 px-3 text-gray-700"
               required
             />
@@ -131,14 +136,14 @@ const CampaignDetails = () => {
               htmlFor="notes"
               className="block text-gray-700 text-sm font-bold mb-2"
             >
-              Additional Notes (Optional)
+              অতিরিক্ত তথ্য (ঐচ্ছিক)
             </label>
             <textarea
               id="notes"
               name="notes"
               value={form.notes}
               onChange={handleChange}
-              placeholder="Any additional details"
+              placeholder="প্রয়োজনীয় অতিরিক্ত তথ্য"
               className="outline-blue-600 appearance-none border rounded w-full py-2 px-3 text-gray-700"
             ></textarea>
           </div>
@@ -147,7 +152,7 @@ const CampaignDetails = () => {
             type="submit"
             className="bg-gradient-to-r from-[#1da1f2] to-[#0e71c8] animate-gradient text-white px-6 py-2 rounded-md"
           >
-            Submit Donation
+            অনুদানের তথ্য জমা দিন
           </button>
         </form>
       </div>

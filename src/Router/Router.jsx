@@ -14,6 +14,9 @@ import Profile from "../Pages/Profile";
 import Register from "../Pages/Register";
 import UpdateProfile from "../Pages/UpdateProfile";
 import PrivateRoute from "./PrivateRoute";
+import AdminRoute from "./AdminRoute";
+import AdminSettings from "../Pages/AdminSettings";
+import DonateMoney from "../Pages/DonateMoney";
 
 const router = createBrowserRouter(
   [
@@ -29,7 +32,21 @@ const router = createBrowserRouter(
         {
           path: "campaigns",
           element: <Campaigns />,
-          loader: () => fetch("/donation-campaigns.json"),
+          loader: async () => {
+            try {
+              const dynamic = await fetch("/.netlify/functions/api?action=public-campaigns");
+              const campaigns = await dynamic.json();
+              if (Array.isArray(campaigns) && campaigns.length > 0) return campaigns;
+            } catch { /* Use cached or static list */ }
+            try {
+              const local = localStorage.getItem("alahsan-campaigns");
+              if (local) {
+                const parsed = JSON.parse(local);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+              }
+            } catch { /* ignore */ }
+            return fetch("/donation-campaigns.json");
+          },
         },
         {
           path: "how-to-help",
@@ -44,11 +61,23 @@ const router = createBrowserRouter(
           element: <Contact />,
         },
         {
+          path: "donate",
+          element: <DonateMoney />,
+        },
+        {
           path: "profile",
           element: (
             <PrivateRoute>
               <Profile />
             </PrivateRoute>
+          ),
+        },
+        {
+          path: "/admin",
+          element: (
+            <AdminRoute>
+              <AdminSettings />
+            </AdminRoute>
           ),
         },
         {
@@ -75,8 +104,22 @@ const router = createBrowserRouter(
             </PrivateRoute>
           ),
           loader: async ({ params }) => {
-            const res = await fetch("/donation-campaigns.json");
-            const data = await res.json();
+            let data = null;
+            try {
+              const dynamic = await fetch("/.netlify/functions/api?action=public-campaigns");
+              const result = await dynamic.json();
+              if (Array.isArray(result) && result.length > 0) data = result;
+            } catch { /* Use local or static list */ }
+            if (!data) {
+              try {
+                const local = localStorage.getItem("alahsan-campaigns");
+                if (local) {
+                  const parsed = JSON.parse(local);
+                  if (Array.isArray(parsed) && parsed.length > 0) data = parsed;
+                }
+              } catch { /* ignore */ }
+            }
+            if (!data) data = await fetch("/donation-campaigns.json").then((res) => res.json());
             const singleData = data.find((d) => d.id === parseInt(params.id));
             return singleData;
           },

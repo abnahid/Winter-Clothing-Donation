@@ -1,18 +1,19 @@
-/* eslint-disable no-unused-vars */
 import { useContext, useState } from "react";
 import { Helmet } from "react-helmet";
 import toast from "react-hot-toast";
 import { FaEyeSlash } from "react-icons/fa";
 import { IoEyeSharp } from "react-icons/io5";
-import { Link, useNavigate } from "react-router-dom";
-import { AuthContext } from "./../context/AuthProvider";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { AuthContext, authErrorMessage } from "./../context/AuthProvider";
+import { useBranding } from "../context/BrandingContext";
 
 const Register = () => {
   const [error, setError] = useState({});
   const navigate = useNavigate();
+  const location = useLocation();
   const [type, setType] = useState("password");
-  const { createUser, updateUserProfile, setUser, googleLogin } =
-    useContext(AuthContext);
+  const { createUser, googleLogin } = useContext(AuthContext);
+  const { settings } = useBranding();
 
   const [validations, setValidations] = useState({
     lower: false,
@@ -35,9 +36,11 @@ const Register = () => {
   };
 
   const handelGoogle = () => {
-    googleLogin().then((result) => {
-      navigate(location?.state?.from || "/");
-    });
+    try {
+      googleLogin();
+    } catch (error) {
+      toast.error(authErrorMessage(error));
+    }
   };
 
   const handleSubmit = (e) => {
@@ -49,51 +52,49 @@ const Register = () => {
     const password = form.get("password");
 
     if (name.length < 5) {
-      setError({ ...error, name: "Name should be more than 5 characters" });
+      setError({ ...error, name: "নাম কমপক্ষে ৫ অক্ষরের হতে হবে" });
       return;
     }
 
     if (!email || !password) {
-      toast.error("Email and password are required");
+      toast.error("ইমেইল ও পাসওয়ার্ড লিখুন");
       return;
     }
 
     if (!validations.lower || !validations.upper || !validations.length) {
-      toast.error("Password does not meet complexity requirements");
+      toast.error("পাসওয়ার্ডে ছোট হাতের ও বড় হাতের ইংরেজি অক্ষর এবং কমপক্ষে ৮টি অক্ষর থাকতে হবে");
       return;
     }
 
-    createUser(email, password)
-      .then((userCredential) => {
-        const user = userCredential.user;
-        toast.success("User created successfully!");
-        setUser(user);
-
-        return updateUserProfile({
-          displayName: name,
-          photoURL: photoUrl,
-        });
-      })
-      .then(() => {
-        navigate(location?.state?.from || "/");
+    createUser(email, password, name, photoUrl)
+      .then(({ confirmed }) => {
+        if (confirmed) {
+          toast.success("সফলভাবে অ্যাকাউন্ট তৈরি হয়েছে!");
+          navigate(location?.state?.from || "/");
+        } else {
+          toast.success(
+            "অ্যাকাউন্ট তৈরি হয়েছে। নিশ্চিতকরণের জন্য ইমেইল দেখুন।",
+            { duration: 5000 }
+          );
+          navigate("/login");
+        }
       })
       .catch((err) => {
-        console.error(err);
-        toast.error(`Error: ${err.message}`);
+        toast.error(authErrorMessage(err));
       });
   };
 
   return (
     <div className="bg-gray-50">
       <Helmet>
-        <title>Sign up - Warm Hearts</title>
+        <title>নিবন্ধন - {settings.siteName}</title>
       </Helmet>
       <div className="min-h-screen flex flex-col items-center justify-center py-6 px-4">
         <div className="max-w-md w-full">
           {/* Sign-in Form */}
           <div className="p-8 rounded-2xl bg-white shadow">
             <h2 className="text-gray-800 text-center text-2xl font-bold">
-              Sign up
+              নিবন্ধন
             </h2>
             <div>
               <a
@@ -121,7 +122,7 @@ const Register = () => {
                   </svg>
                 </div>
                 <h1 className="px-4 py-3 w-5/6 text-center text-gray-600 font-bold">
-                  Sign up with Google
+                  গুগল দিয়ে নিবন্ধন
                 </h1>
               </a>
 
@@ -131,7 +132,7 @@ const Register = () => {
                   href="#"
                   className="text-xs text-center text-gray-500 uppercase"
                 >
-                  or Sign up with email
+                  অথবা ইমেইল দিয়ে নিবন্ধন
                 </a>
                 <span className="border-b w-1/5 lg:w-1/4"></span>
               </div>
@@ -140,7 +141,7 @@ const Register = () => {
               {/* Username Field */}
               <div>
                 <label className="text-gray-800 text-sm mb-2 block">
-                  User name
+                  নাম
                 </label>
                 <div className="relative flex items-center">
                   <input
@@ -148,7 +149,7 @@ const Register = () => {
                     type="text"
                     required
                     className="w-full text-gray-800 text-sm border border-gray-300 px-4 py-3 rounded-md outline-primary"
-                    placeholder="Enter user name"
+                    placeholder="আপনার নাম লিখুন"
                   />
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -178,25 +179,25 @@ const Register = () => {
 
               <div className="mb-4">
                 <label className="text-gray-800 text-sm mb-2 block">
-                  Photo URL
+                  ছবির লিংক
                 </label>
                 <input
                   type="url"
                   name="photoUrl"
                   className="w-full pr-10 text-gray-800 text-sm border border-gray-300 px-4 py-3 rounded-md outline-primary"
-                  placeholder="Enter photo URL"
+                  placeholder="ছবির লিংক লিখুন"
                 />
               </div>
 
               <div className="mb-4">
                 <label className="text-gray-800 text-sm mb-2 block">
-                  Email
+                  ইমেইল
                 </label>
                 <input
                   type="email"
                   name="email"
                   className="w-full pr-10 text-gray-800 text-sm border border-gray-300 px-4 py-3 rounded-md outline-primary"
-                  placeholder="Enter your email address"
+                  placeholder="আপনার ইমেইল লিখুন"
                   required
                 />
               </div>
@@ -204,14 +205,14 @@ const Register = () => {
               {/* Password Field */}
               <div>
                 <label className="text-gray-800 text-sm mb-2 block">
-                  Password
+                  পাসওয়ার্ড
                 </label>
                 <div className="relative">
                   <input
                     type={type}
                     name="password"
                     className="w-full pr-10 text-gray-800 text-sm border border-gray-300 px-4 py-3 rounded-md outline-primary"
-                    placeholder="Enter your password"
+                    placeholder="আপনার পাসওয়ার্ড লিখুন"
                     onChange={(e) => handleChange(e.target.value)}
                     required
                   />
@@ -229,14 +230,14 @@ const Register = () => {
                         validations.lower ? "text-green-500" : "text-red-500"
                       }
                     >
-                      Contains a lowercase letter
+                      একটি ছোট হাতের ইংরেজি অক্ষর থাকতে হবে
                     </p>
                     <p
                       className={
                         validations.upper ? "text-green-500" : "text-red-500"
                       }
                     >
-                      Contains an uppercase letter
+                      একটি বড় হাতের ইংরেজি অক্ষর থাকতে হবে
                     </p>
 
                     <p
@@ -244,7 +245,7 @@ const Register = () => {
                         validations.length ? "text-green-500" : "text-red-500"
                       }
                     >
-                      At least 6 characters long
+                      কমপক্ষে ৮ অক্ষরের হতে হবে
                     </p>
                   </div>
                 </div>
@@ -261,9 +262,9 @@ const Register = () => {
                   htmlFor="remember-me"
                   className="ml-3 block text-sm text-gray-800"
                 >
-                  Accept{" "}
+                  আমি সম্মত হচ্ছি{" "}
                   <a href="#" className="text-neutral-500 font-semibold">
-                    Terms & Conditions
+                    শর্তাবলি
                   </a>
                 </label>
               </div>
@@ -274,7 +275,7 @@ const Register = () => {
                   type="submit"
                   className="w-full py-3 px-4 text-sm tracking-wide rounded-lg text-white bg-primary hover:bg-blue-700 focus:outline-none"
                 >
-                  Sign up
+                  নিবন্ধন
                 </button>
               </div>
 
@@ -285,7 +286,7 @@ const Register = () => {
                   to="/login"
                   className="text-primary hover:underline ml-1 whitespace-nowrap font-semibold"
                 >
-                  Login
+                  লগইন
                 </Link>
               </p>
             </form>
