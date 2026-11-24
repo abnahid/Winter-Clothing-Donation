@@ -7,38 +7,70 @@ import { DEFAULT_BRANDING, useBranding } from "../context/BrandingContext";
 const API = "/.netlify/functions/api";
 const tabs = [
   ["overview", "সাইট ওভারভিউ"],
+  ["hero", "হিরো স্লাইড"],
   ["campaigns", "কার্যক্রম ও ছবি"],
   ["donations", "অনুদান যাচাই"],
   ["expenses", "আয়-ব্যয়"],
 ];
 const money = (amount) => `৳${Number(amount || 0).toLocaleString("bn-BD")}`;
+const IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
 
 async function imageToDataUrl(file) {
-  if (!new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]).has(file?.type)) {
+  if (!IMAGE_TYPES.has(file?.type)) {
     throw new Error("PNG, JPEG, WebP বা GIF ছবির ফাইল নির্বাচন করুন।");
   }
-  if (file.size > 750 * 1024) throw new Error("প্রতিটি ছবি ৭৫০ কিলোবাইটের মধ্যে রাখুন।");
+  if (file.size > 750 * 1024) throw new Error("ছবির মূল ফাইল ৭৫০ কিলোবাইটের মধ্যে রাখুন।");
+
+  let uploadFile = file;
+  if (file.size > 180 * 1024 && typeof createImageBitmap === "function") {
+    const bitmap = await createImageBitmap(file);
+    const maxSide = 1600;
+    let scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+    let blob = null;
+    for (let attempt = 0; attempt < 7; attempt += 1) {
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+      canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+      canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/webp", 0.82 - attempt * 0.04));
+      if (blob && blob.size <= 180 * 1024) break;
+      scale *= 0.82;
+    }
+    bitmap.close();
+    if (!blob || blob.size > 180 * 1024) throw new Error("ছবিটি ছোট করে আপলোড করুন।");
+    uploadFile = blob;
+  }
+
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result);
     reader.onerror = () => reject(new Error("ছবিটি পড়া যায়নি।"));
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(uploadFile);
   });
 }
+
+const emailStatusText = (status) => ({
+  sent: "পাঠানো হয়েছে",
+  failed: "পাঠানো ব্যর্থ",
+  pending: "পাঠানোর অপেক্ষায়",
+  unknown: "অবস্থা জানা নেই",
+}[status] || "অবস্থা জানা নেই");
 
 const AdminSettings = () => {
   const { user } = useContext(AuthContext);
   const { settings, campaigns: sharedCampaigns, saveSettings, saveCampaigns } = useBranding();
   const [section, setSection] = useState("overview");
-  const [form, setForm] = useState(settings);
+  const [form, setForm] = useState({ ...DEFAULT_BRANDING, ...settings });
   const [campaignList, setCampaignList] = useState(sharedCampaigns || []);
   const campaignListRef = useRef(sharedCampaigns || []);
-  useEffect(() => { campaignListRef.current = campaignList; }, [campaignList]);
   const [donations, setDonations] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [newExpense, setNewExpense] = useState({ title: "", category: "", amount: "", note: "" });
+  const inputClass = "mt-2 w-full rounded-xl border border-gray-300 px-4 py-3 outline-primary";
+
+  useEffect(() => { campaignListRef.current = campaignList; }, [campaignList]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -49,8 +81,9 @@ const AdminSettings = () => {
       setDonations(data.donations || []);
       setExpenses(data.expenses || []);
       if (data.settings) setForm({ ...DEFAULT_BRANDING, ...data.settings });
-      if (data.campaigns) setCampaignList(data.campaigns);
-      else if (!campaignListRef.current.length) {
+      if (data.campaigns !== null && data.campaigns !== undefined) {
+        setCampaignList(data.campaigns);
+      } else if (!campaignListRef.current.length) {
         const seedResponse = await fetch("/donation-campaigns.json");
         setCampaignList(await seedResponse.json());
       }
@@ -63,8 +96,8 @@ const AdminSettings = () => {
 
   useEffect(() => { refresh(); }, [refresh]);
   useEffect(() => {
-    setForm({ ...DEFAULT_BRANDING, ...settings });
-    if (sharedCampaigns?.length) setCampaignList(sharedCampaigns);
+    setForm((current) => ({ ...current, ...DEFAULT_BRANDING, ...settings }));
+    if (sharedCampaigns !== null && sharedCampaigns !== undefined) setCampaignList(sharedCampaigns);
   }, [settings, sharedCampaigns]);
 
   const totals = useMemo(() => {
@@ -86,7 +119,7 @@ const AdminSettings = () => {
   };
 
   const saveBranding = async (event) => {
-    event.preventDefault();
+    event?.preventDefault();
     setBusy(true);
     try {
       await saveSettings(form);
@@ -95,31 +128,79 @@ const AdminSettings = () => {
     finally { setBusy(false); }
   };
 
-  const handleImage = async (event, key, index = null) => {
+  const handleImage = async (event, update) => {
     try {
       const value = await imageToDataUrl(event.target.files?.[0]);
-      if (index === null) setForm((current) => ({ ...current, [key]: value }));
-      else setCampaignList((current) => current.map((campaign, i) => i === index ? { ...campaign, image: value } : campaign));
+      update(value);
     } catch (error) { toast.error(error.message); }
+  };
+
+  const updateHero = (index, key, value) => {
+    setForm((current) => ({
+      ...current,
+      heroSlides: (current.heroSlides || DEFAULT_BRANDING.heroSlides).map((slide, i) =>
+        i === index ? { ...slide, [key]: value } : slide
+      ),
+    }));
+  };
+
+  const addHeroSlide = () => {
+    setForm((current) => ({
+      ...current,
+      heroSlides: [...(current.heroSlides || DEFAULT_BRANDING.heroSlides), {
+        image: "",
+        heading: "নতুন স্লাইড",
+        description: "",
+        buttonLabel: "এখনই অনুদান দিন",
+        buttonLink: "/donate",
+      }],
+    }));
+  };
+
+  const removeHeroSlide = (index) => {
+    setForm((current) => ({
+      ...current,
+      heroSlides: (current.heroSlides || []).filter((_, i) => i !== index),
+    }));
   };
 
   const saveCampaignImages = async () => {
     setBusy(true);
     try {
       await saveCampaigns(campaignList);
-      toast.success("কার্যক্রমের লেখা ও ছবি সবার জন্য সংরক্ষিত হয়েছে।");
+      toast.success("কার্যক্রমের তথ্য ও ছবি সবার জন্য সংরক্ষিত হয়েছে।");
     } catch (error) { toast.error(error.message); }
     finally { setBusy(false); }
+  };
+
+  const updateCampaign = (index, key, value) => {
+    setCampaignList((current) => current.map((campaign, i) =>
+      i === index ? { ...campaign, [key]: value } : campaign
+    ));
   };
 
   const verifyDonation = async (id, action) => {
     setBusy(true);
     try {
       const result = await postAdmin({ action, id });
-      toast.success(result.message || (action === "verify-donation" ? "অনুদান যাচাই করে রসিদ পাঠানো হয়েছে।" : "অনুদান বাতিল করা হয়েছে।"));
+      toast.success(result.message || (action === "verify-donation" ? "অনুদান যাচাই হয়েছে।" : "অনুদান বাতিল করা হয়েছে।"));
       await refresh();
     } catch (error) { toast.error(error.message); }
     finally { setBusy(false); }
+  };
+
+  const resendReceipt = async (donation) => {
+    setBusy(true);
+    try {
+      const attemptId = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const result = await postAdmin({ action: "resend-receipt", id: donation.id, attemptId });
+      toast.success(result.message || "রসিদ ইমেইল পাঠানো হয়েছে।");
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      await refresh();
+      setBusy(false);
+    }
   };
 
   const submitExpense = async (event) => {
@@ -134,13 +215,14 @@ const AdminSettings = () => {
     finally { setBusy(false); }
   };
 
-  const inputClass = "mt-2 w-full rounded-xl border border-gray-300 px-4 py-3 outline-primary";
   const pendingDonations = donations.filter((donation) => donation.status === "pending");
+  const heroSlides = form.heroSlides?.length ? form.heroSlides : DEFAULT_BRANDING.heroSlides;
+  const approvedDonations = donations.filter((donation) => donation.status === "approved");
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8">
       <Helmet><title>অ্যাডমিন প্যানেল - {settings.siteName}</title></Helmet>
-      <header className="mb-7 rounded-3xl bg-primary p-7 text-white shadow-lg">
+      <header className="mb-7 rounded-3xl bg-primary p-7 text-white shadow-lg" data-aos="fade-down">
         <p className="text-sm font-semibold text-white/80">সাইট পরিচালনা</p>
         <h1 className="mt-2 text-3xl font-bold">অ্যাডমিন প্যানেল</h1>
         <p className="mt-2">ওয়েবসাইট, অনুদান, কার্যক্রম ও ব্যয়ের হিসাব পরিচালনা করুন।</p>
@@ -148,52 +230,99 @@ const AdminSettings = () => {
       </header>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {[["যাচাইকৃত অনুদান", money(totals.received)], ["যাচাইয়ের অপেক্ষায়", money(totals.pending)], ["মোট ব্যয়", money(totals.spent)], ["বর্তমান তহবিল", money(totals.balance)]].map(([title, value]) => (
-          <article key={title} className="rounded-2xl bg-white p-5 shadow-sm"><p className="text-sm text-gray-500">{title}</p><p className="mt-2 text-2xl font-bold text-primary">{value}</p></article>
+        {[["যাচাইকৃত অনুদান", money(totals.received)], ["যাচাইয়ের অপেক্ষায়", money(totals.pending)], ["মোট ব্যয়", money(totals.spent)], ["বর্তমান তহবিল", money(totals.balance)]].map(([title, value], index) => (
+          <article key={title} className="rounded-2xl bg-white p-5 shadow-sm" data-aos="fade-up" data-aos-delay={index * 80}>
+            <p className="text-sm text-gray-500">{title}</p><p className="mt-2 text-2xl font-bold text-primary">{value}</p>
+          </article>
         ))}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
-        <nav aria-label="অ্যাডমিন মেনু" className="h-fit rounded-2xl bg-white p-3 shadow-sm">
-          {tabs.map(([id, label]) => <button key={id} onClick={() => setSection(id)} className={`mb-1 w-full rounded-xl px-4 py-3 text-left font-semibold ${section === id ? "bg-primary text-white" : "hover:bg-gray-100"}`}>{label}</button>)}
+        <nav aria-label="অ্যাডমিন মেনু" className="h-fit rounded-2xl bg-white p-3 shadow-sm" data-aos="fade-right">
+          {tabs.map(([id, label]) => <button key={id} onClick={() => setSection(id)} className={`mb-1 w-full rounded-xl px-4 py-3 text-left font-semibold transition-colors ${section === id ? "bg-primary text-white" : "hover:bg-gray-100"}`}>{label}</button>)}
           <button onClick={refresh} className="mt-3 w-full rounded-xl border border-gray-200 px-4 py-3 text-left text-sm hover:bg-gray-50">তথ্য হালনাগাদ করুন</button>
         </nav>
 
-        <section className="min-w-0 rounded-2xl bg-white p-5 shadow-sm sm:p-7">
+        <section className="min-w-0 rounded-2xl bg-white p-5 shadow-sm sm:p-7" data-aos="fade-up">
           {loading ? <p className="py-8 text-center">তথ্য আনা হচ্ছে…</p> : null}
 
           {!loading && section === "overview" && <form onSubmit={saveBranding} className="space-y-5">
             <div><h2 className="text-2xl font-bold">সাইটের পরিচিতি ও থিম</h2><p className="mt-2 text-gray-600">পরিবর্তনগুলো সার্ভারে সংরক্ষিত হয়ে সব দর্শকের জন্য প্রকাশিত হবে।</p></div>
-            <label className="block font-semibold">ওয়েবসাইটের নাম<input className={inputClass} maxLength="80" value={form.siteName} onChange={(e) => setForm({ ...form, siteName: e.target.value })} required /></label>
+            <label className="block font-semibold">ওয়েবসাইটের নাম<input className={inputClass} maxLength="80" value={form.siteName || ""} onChange={(e) => setForm({ ...form, siteName: e.target.value })} required /></label>
             <label className="block font-semibold">মূল থিমের রঙ<div className="mt-2 flex items-center gap-4"><input type="color" value={form.primaryColor} onChange={(e) => setForm({ ...form, primaryColor: e.target.value })} className="h-12 w-16"/><code>{form.primaryColor}</code></div></label>
-            <label className="block font-semibold">সাইটের লোগো<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(e) => handleImage(e, "logo")} className={inputClass} /></label>
-            <img src={form.logo} alt="লোগোর পূর্বরূপ" className="h-24 w-24 rounded-xl object-contain" />
-            <label className="block font-semibold">হোম পেজের ওভারভিউ<textarea rows="5" maxLength="3000" className={inputClass} value={form.overview} onChange={(e) => setForm({ ...form, overview: e.target.value })} /></label>
-            <label className="block font-semibold">ওভারভিউ অংশের ছবি<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(e) => handleImage(e, "overviewImage")} className={inputClass} /></label>
+            <label className="block font-semibold">সাইটের লোগো<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(e) => handleImage(e, (value) => setForm((current) => ({ ...current, logo: value })))} className={inputClass} /></label>
+            {form.logo && <img src={form.logo} alt="লোগোর পূর্বরূপ" className="h-24 w-24 rounded-xl object-contain" />}
+            <label className="block font-semibold">হোম পেজের ওভারভিউ<textarea rows="5" maxLength="3000" className={inputClass} value={form.overview || ""} onChange={(e) => setForm({ ...form, overview: e.target.value })} /></label>
+            <label className="block font-semibold">ওভারভিউ অংশের ছবি<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(e) => handleImage(e, (value) => setForm((current) => ({ ...current, overviewImage: value })))} className={inputClass} /></label>
             {form.overviewImage && <img src={form.overviewImage} alt="ওভারভিউ ছবির পূর্বরূপ" className="max-h-64 rounded-xl object-cover" />}
             <button disabled={busy} className="rounded-xl bg-primary px-6 py-3 font-semibold text-white disabled:opacity-60">{busy ? "সংরক্ষণ হচ্ছে…" : "পরিবর্তন সংরক্ষণ"}</button>
           </form>}
 
+          {!loading && section === "hero" && <div className="space-y-5">
+            <div><h2 className="text-2xl font-bold">হিরো ব্যানারের স্লাইড</h2><p className="mt-2 text-gray-600">প্রতিটি স্লাইডে ছবি, শিরোনাম, বিবরণ ও বোতাম সম্পাদনা করুন। থিমের রঙ অপরিবর্তিত থাকবে।</p></div>
+            <label className="block max-w-xs font-semibold">কত সেকেন্ড পর স্লাইড বদলাবে?
+              <input type="number" min="1" max="60" step="1" className={inputClass} value={form.sliderAutoplayDelay || 5} onChange={(e) => setForm({ ...form, sliderAutoplayDelay: Number(e.target.value) })} />
+            </label>
+            <button type="button" onClick={addHeroSlide} className="rounded-xl border border-primary px-5 py-3 font-semibold text-primary">নতুন স্লাইড যোগ করুন</button>
+            {heroSlides.map((slide, index) => <article key={index} className="space-y-4 rounded-2xl border border-gray-200 p-4 sm:p-5" data-aos="fade-up">
+              <div className="flex items-center justify-between gap-3"><h3 className="text-lg font-bold">স্লাইড {index + 1}</h3>{heroSlides.length > 1 && <button type="button" onClick={() => removeHeroSlide(index)} className="rounded-lg border border-red-200 px-3 py-2 text-sm text-red-700">স্লাইড সরান</button>}</div>
+              <label className="block font-semibold">স্লাইডের ছবি <span className="text-xs text-gray-500">(বড় ছবি স্বয়ংক্রিয়ভাবে ছোট করে নেওয়া হবে)</span><input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(e) => handleImage(e, (value) => updateHero(index, "image", value))} className={inputClass} /></label>
+              {slide.image && <img src={slide.image} alt={`স্লাইড ${index + 1}`} className="max-h-48 w-full rounded-xl object-cover" />}
+              <label className="block font-semibold">শিরোনাম<input className={inputClass} maxLength="140" value={slide.heading || ""} onChange={(e) => updateHero(index, "heading", e.target.value)} /></label>
+              <label className="block font-semibold">বিবরণ<textarea className={inputClass} rows="3" maxLength="500" value={slide.description || ""} onChange={(e) => updateHero(index, "description", e.target.value)} /></label>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="block font-semibold">বোতামের লেখা<input className={inputClass} maxLength="60" value={slide.buttonLabel || ""} onChange={(e) => updateHero(index, "buttonLabel", e.target.value)} /></label>
+                <label className="block font-semibold">বোতামের লিংক<input className={inputClass} maxLength="200" placeholder="/donate অথবা https://..." value={slide.buttonLink || ""} onChange={(e) => updateHero(index, "buttonLink", e.target.value)} /></label>
+              </div>
+            </article>)}
+            <button disabled={busy} onClick={saveBranding} className="rounded-xl bg-primary px-6 py-3 font-semibold text-white disabled:opacity-60">{busy ? "সংরক্ষণ হচ্ছে…" : "হিরো স্লাইড সংরক্ষণ"}</button>
+          </div>}
+
           {!loading && section === "campaigns" && <div className="space-y-5">
-            <div><h2 className="text-2xl font-bold">কার্যক্রমের লেখা ও ছবি</h2><p className="mt-2 text-gray-600">এখানে আপডেট করলে তালিকা ও কার্যক্রমের বিস্তারিত পাতায় সবার কাছে প্রকাশিত হবে।</p></div>
-            <button onClick={() => setCampaignList((list) => [...list, { id: Math.max(0, ...list.map((item) => Number(item.id) || 0)) + 1, title: "নতুন কার্যক্রম", image: "", description: "", secondary_description: "", division: "বাংলাদেশ", status: "চলমান", current_funds: 0, goal: 0, progress: 0, contactInfo: "alahsanfoundationbangladesh@gmail.com" }])} className="rounded-xl border border-primary px-5 py-3 font-semibold text-primary">নতুন কার্যক্রম যোগ করুন</button>
-            {campaignList.map((campaign, index) => <article key={campaign.id} className="rounded-xl border border-gray-200 p-4">
-              <div className="grid gap-4 md:grid-cols-[180px_1fr]">
-                <div><img src={campaign.image} alt={campaign.title} className="h-32 w-full rounded-lg object-cover"/><label className="mt-2 block text-sm font-semibold">ছবি পরিবর্তন<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(e) => handleImage(e, "image", index)} className="mt-2 block w-full text-sm"/></label></div>
-                <div className="space-y-3"><label className="block text-sm font-semibold">কার্যক্রমের নাম<input className={inputClass} value={campaign.title} onChange={(e) => setCampaignList((list) => list.map((item, i) => i === index ? { ...item, title: e.target.value } : item))}/></label><label className="block text-sm font-semibold">পরিচিতি<textarea rows="3" className={inputClass} value={campaign.description} onChange={(e) => setCampaignList((list) => list.map((item, i) => i === index ? { ...item, description: e.target.value } : item))}/></label></div>
+            <div><h2 className="text-2xl font-bold">কার্যক্রমের তথ্য ও ছবি</h2><p className="mt-2 text-gray-600">দ্বিতীয় স্ক্রিনশটের মতো কার্যক্রম কার্ডের ছবি, লেখা, বিভাগ, লক্ষ্যমাত্রা ও অগ্রগতি সম্পাদনা করুন বা নতুন কার্যক্রম যোগ করুন।</p></div>
+            <button type="button" onClick={() => setCampaignList((list) => [...list, { id: Math.max(0, ...list.map((item) => Number(item.id) || 0)) + 1, title: "নতুন কার্যক্রম", image: "", description: "", secondary_description: "", division: "ঢাকা", status: "চলমান", current_funds: 0, goal: 0, progress: 0, contactInfo: "alahsanfoundationbangladesh@gmail.com" }])} className="rounded-xl border border-primary px-5 py-3 font-semibold text-primary">নতুন কার্যক্রম যোগ করুন</button>
+            {campaignList.map((campaign, index) => <article key={campaign.id || index} className="space-y-4 rounded-2xl border border-gray-200 p-4 sm:p-5" data-aos="fade-up">
+              <h3 className="text-lg font-bold">কার্যক্রম {index + 1}</h3>
+              <div className="grid gap-4 md:grid-cols-[200px_1fr]">
+                <div><img src={campaign.image} alt={campaign.title} className="h-36 w-full rounded-lg bg-gray-100 object-cover"/><label className="mt-2 block text-sm font-semibold">ছবি পরিবর্তন<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(e) => handleImage(e, (value) => updateCampaign(index, "image", value))} className="mt-2 block w-full text-sm"/></label></div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="block text-sm font-semibold">কার্যক্রমের নাম<input className={inputClass} maxLength="140" value={campaign.title || ""} onChange={(e) => updateCampaign(index, "title", e.target.value)}/></label>
+                  <label className="block text-sm font-semibold">বিভাগ<input className={inputClass} maxLength="60" value={campaign.division || ""} onChange={(e) => updateCampaign(index, "division", e.target.value)}/></label>
+                  <label className="block text-sm font-semibold sm:col-span-2">কার্ডের সংক্ষিপ্ত বিবরণ<textarea rows="3" maxLength="2500" className={inputClass} value={campaign.description || ""} onChange={(e) => updateCampaign(index, "description", e.target.value)}/></label>
+                  <label className="block text-sm font-semibold sm:col-span-2">বিস্তারিত বিবরণ<textarea rows="4" maxLength="4000" className={inputClass} value={campaign.secondary_description || ""} onChange={(e) => updateCampaign(index, "secondary_description", e.target.value)}/></label>
+                  <label className="block text-sm font-semibold">অনুদানের লক্ষ্য (টাকা)<input type="number" min="0" className={inputClass} value={campaign.goal ?? 0} onChange={(e) => updateCampaign(index, "goal", Number(e.target.value))}/></label>
+                  <label className="block text-sm font-semibold">এ পর্যন্ত সংগৃহীত (টাকা)<input type="number" min="0" className={inputClass} value={campaign.current_funds ?? 0} onChange={(e) => updateCampaign(index, "current_funds", Number(e.target.value))}/></label>
+                  <label className="block text-sm font-semibold">কার্যক্রমের অবস্থা<select className={inputClass} value={["Active", "active", "চলমান"].includes(campaign.status) ? "চলমান" : campaign.status || "চলমান"} onChange={(e) => updateCampaign(index, "status", e.target.value)}><option value="চলমান">চলমান</option><option value="সম্পন্ন">সম্পন্ন</option><option value="স্থগিত">স্থগিত</option></select></label>
+                  <label className="block text-sm font-semibold">যোগাযোগের ইমেইল<input type="email" className={inputClass} value={campaign.contactInfo || ""} onChange={(e) => updateCampaign(index, "contactInfo", e.target.value)}/></label>
+                </div>
               </div>
             </article>)}
             <button disabled={busy || !campaignList.length} onClick={saveCampaignImages} className="rounded-xl bg-primary px-6 py-3 font-semibold text-white disabled:opacity-60">{busy ? "সংরক্ষণ হচ্ছে…" : "কার্যক্রম ও ছবি সংরক্ষণ"}</button>
           </div>}
 
           {!loading && section === "donations" && <div className="space-y-5">
-            <div><h2 className="text-2xl font-bold">অনুদান যাচাই</h2><p className="mt-2 text-gray-600">মোবাইল আর্থিক সেবার TrxID নিজে যাচাই করে অনুমোদন করুন। অনুমোদনের পরই দাতার ইমেইলে রসিদ পাঠানো হবে।</p></div>
+            <div><h2 className="text-2xl font-bold">অনুদান যাচাই ও রসিদ</h2><p className="mt-2 text-gray-600">TrxID নিজে যাচাই করুন। অনুমোদনের পর রসিদ ইমেইল পাঠানোর অবস্থা দেখা যাবে; ব্যর্থ হলে এখান থেকেই আবার পাঠান।</p></div>
             {pendingDonations.length === 0 && <p className="rounded-xl bg-gray-50 p-5 text-gray-600">যাচাইয়ের অপেক্ষায় কোনো অনুদান নেই।</p>}
-            {pendingDonations.map((donation) => <article key={donation.id} className="rounded-xl border border-amber-200 p-4">
-              <div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="font-bold">{donation.name} · {money(donation.amount)}</h3><p className="text-sm text-gray-600">{donation.email} · {donation.phone}</p><p className="mt-2 text-sm">মাধ্যম: {{ bKash: "বিকাশ", Nagad: "নগদ", Rocket: "রকেট" }[donation.method] || donation.method} · TrxID: <code className="font-bold">{donation.trxId}</code></p><p className="text-sm">কার্যক্রম: {donation.campaignTitle || "সাধারণ অনুদান"}</p><p className="text-xs text-gray-500">{new Date(donation.createdAt).toLocaleString("bn-BD")}</p></div><div className="flex gap-2"><button disabled={busy} onClick={() => verifyDonation(donation.id, "verify-donation")} className="rounded-lg bg-green-700 px-4 py-2 text-white disabled:opacity-60">যাচাই ও রসিদ পাঠান</button><button disabled={busy} onClick={() => verifyDonation(donation.id, "reject-donation")} className="rounded-lg border border-red-300 px-4 py-2 text-red-700">বাতিল</button></div></div>
+            {pendingDonations.map((donation) => <article key={donation.id} className="rounded-xl border border-amber-200 p-4" data-aos="fade-up">
+              <div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="font-bold">{donation.name} · {money(donation.amount)}</h3><p className="text-sm text-gray-600">{donation.email} · {donation.phone}</p><p className="mt-2 text-sm">মাধ্যম: {{ bKash: "বিকাশ", Nagad: "নগদ", Rocket: "রকেট" }[donation.method] || donation.method} · TrxID: <code className="font-bold">{donation.trxId}</code></p><p className="text-sm">কার্যক্রম: {donation.campaignTitle || "সাধারণ অনুদান"}</p><p className="text-xs text-gray-500">{new Date(donation.createdAt).toLocaleString("bn-BD")}</p></div><div className="flex gap-2"><button disabled={busy} onClick={() => verifyDonation(donation.id, "verify-donation")} className="rounded-lg bg-green-700 px-4 py-2 text-white disabled:opacity-60">যাচাই ও রসিদ পাঠান</button><button disabled={busy} onClick={() => verifyDonation(donation.id, "reject-donation")} className="rounded-lg border border-red-300 px-4 py-2 text-red-700 disabled:opacity-60">বাতিল</button></div></div>
             </article>)}
-            <h3 className="pt-3 text-lg font-bold">অনুদানের ইতিহাস</h3>
-            {donations.filter((d) => d.status !== "pending").map((donation) => <div key={donation.id} className="flex flex-wrap justify-between gap-2 border-b py-3 text-sm"><span>{donation.name} · {donation.trxId} · {donation.status === "approved" ? "অনুমোদিত" : "বাতিল"}</span><span>{money(donation.amount)} {donation.invoiceNumber ? `· রসিদ ${donation.invoiceNumber}` : ""}</span></div>)}
+            <h3 className="pt-3 text-lg font-bold">অনুদানের ইতিহাস ও ইমেইল অবস্থা</h3>
+            {approvedDonations.length === 0 && donations.every((d) => d.status === "pending") && <p className="text-sm text-gray-500">অনুমোদিত অনুদানের ইতিহাস এখনো নেই।</p>}
+            {donations.filter((d) => d.status !== "pending").map((donation) => {
+              const emailStatus = donation.emailStatus || "unknown";
+              return <article key={donation.id} className="space-y-2 rounded-xl border border-gray-200 p-4" data-aos="fade-up">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div><strong>{donation.name} · {money(donation.amount)}</strong><p className="text-sm text-gray-600">{donation.email} · TrxID: {donation.trxId}</p><p className="text-xs text-gray-500">{donation.status === "approved" ? "অনুমোদিত" : "বাতিল"}{donation.invoiceNumber ? ` · রসিদ ${donation.invoiceNumber}` : ""}</p></div>
+                  <div className="flex items-center gap-2">
+                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${emailStatus === "sent" ? "bg-green-100 text-green-800" : emailStatus === "failed" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"}`}>{emailStatusText(emailStatus)}</span>
+                    {donation.status === "approved" && emailStatus !== "sent" && <button disabled={busy} onClick={() => resendReceipt(donation)} className="rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-white disabled:opacity-60">রসিদ পুনরায় পাঠান</button>}
+                  </div>
+                </div>
+                {(donation.lastEmailAttempt || donation.approvedAt) && <p className="text-xs text-gray-500">শেষ চেষ্টা: {new Date(donation.lastEmailAttempt || donation.approvedAt).toLocaleString("bn-BD")}</p>}
+                {donation.emailError && <p className="rounded-lg bg-red-50 p-2 text-sm text-red-700">{donation.emailError}</p>}
+                {!!donation.emailAttempts?.length && <details className="text-sm"><summary className="cursor-pointer text-gray-600">পাঠানোর ইতিহাস ({donation.emailAttempts.length})</summary><ul className="mt-2 space-y-1 text-xs text-gray-500">{donation.emailAttempts.slice().reverse().map((attempt, index) => <li key={`${attempt.attemptedAt}-${index}`}>{new Date(attempt.attemptedAt).toLocaleString("bn-BD")} · {emailStatusText(attempt.status)}{attempt.error ? ` · ${attempt.error}` : ""}</li>)}</ul></details>}
+              </article>;
+            })}
           </div>}
 
           {!loading && section === "expenses" && <div className="space-y-5">
@@ -203,7 +332,7 @@ const AdminSettings = () => {
               <label className="text-sm font-semibold">খাত<input className={inputClass} value={newExpense.category} onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}/></label>
               <label className="text-sm font-semibold">টাকার পরিমাণ<input required type="number" min="1" className={inputClass} value={newExpense.amount} onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}/></label>
               <label className="text-sm font-semibold">নোট<input className={inputClass} value={newExpense.note} onChange={(e) => setNewExpense({ ...newExpense, note: e.target.value })}/></label>
-              <button disabled={busy} className="rounded-xl bg-primary px-5 py-3 font-semibold text-white md:col-span-2">ব্যয় সংরক্ষণ</button>
+              <button disabled={busy} className="rounded-xl bg-primary px-5 py-3 font-semibold text-white md:col-span-2 disabled:opacity-60">ব্যয় সংরক্ষণ</button>
             </form>
             <div className="grid gap-3 sm:grid-cols-2"><p className="rounded-xl bg-green-50 p-4">যাচাইকৃত অনুদান: <strong>{money(totals.received)}</strong></p><p className="rounded-xl bg-rose-50 p-4">মোট ব্যয়: <strong>{money(totals.spent)}</strong></p></div>
             {expenses.map((expense) => <div key={expense.id} className="flex justify-between gap-3 border-b py-3"><span>{expense.title}<small className="block text-gray-500">{expense.category} {expense.note ? `· ${expense.note}` : ""}</small></span><strong>{money(expense.amount)}</strong></div>)}
