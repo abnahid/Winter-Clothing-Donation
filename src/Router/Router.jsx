@@ -36,8 +36,15 @@ const router = createBrowserRouter(
             try {
               const dynamic = await fetch("/.netlify/functions/api?action=public-campaigns");
               const campaigns = await dynamic.json();
-              if (Array.isArray(campaigns)) return campaigns;
-            } catch { /* Use the static campaign list when shared storage is unavailable. */ }
+              if (Array.isArray(campaigns) && campaigns.length > 0) return campaigns;
+            } catch { /* Use cached or static list */ }
+            try {
+              const local = localStorage.getItem("alahsan-campaigns");
+              if (local) {
+                const parsed = JSON.parse(local);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+              }
+            } catch { /* ignore */ }
             return fetch("/donation-campaigns.json");
           },
         },
@@ -101,8 +108,17 @@ const router = createBrowserRouter(
             try {
               const dynamic = await fetch("/.netlify/functions/api?action=public-campaigns");
               const result = await dynamic.json();
-              if (Array.isArray(result)) data = result;
-            } catch { /* Use the static campaign list when shared storage is unavailable. */ }
+              if (Array.isArray(result) && result.length > 0) data = result;
+            } catch { /* Use local or static list */ }
+            if (!data) {
+              try {
+                const local = localStorage.getItem("alahsan-campaigns");
+                if (local) {
+                  const parsed = JSON.parse(local);
+                  if (Array.isArray(parsed) && parsed.length > 0) data = parsed;
+                }
+              } catch { /* ignore */ }
+            }
             if (!data) data = await fetch("/donation-campaigns.json").then((res) => res.json());
             const singleData = data.find((d) => d.id === parseInt(params.id));
             return singleData;
